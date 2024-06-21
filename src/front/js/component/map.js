@@ -18,27 +18,55 @@ export const MapComponent = () => {
   const [apartments, setApartments] = useState([]);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [location, setLocation] = useState('San Francisco, CA'); // Default location
-
-  const fetchAptListings = async () => {
-    try {
-      const data = await actions.fetchApartments(location);
-      return data;
-    } catch (error) {
-      console.error('Error fetching apartments:', error);
-      return null;
-    }
-  };
+  const [beds, setBeds] = useState(null);
+  const [baths,setBaths] =useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await fetchAptListings();
-      if (data && data.props) { // Check if data is not null and has the props key
-        setApartments(data.props); // Adjust based on API response structure
-      }
-    };
+    async function fetchApartments() {
+      try {
+        const response = await fetch(process.env.BACKEND_URL+'api/apartments');
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const data = await response.json();
+          
+          setApartments(data.data.results); 
 
-    fetchData();
-  }, [location]);
+          for (let i = 0; i < apartments.length; i++) {
+
+            if(apartments[i].description.beds == null){
+              setBeds(apartments[i].description.beds_max);
+            }else {
+              setBeds(apartments[i].description.beds)
+            }
+
+            if(apartments[i].description.baths == null){
+              setBaths(apartments[i].description.baths_max);
+            }else{
+              setBaths(apartments[i].description.baths);
+            }
+            
+          }
+
+
+        } 
+      } catch (error) {
+        setError(error);
+        console.error('Error fetching apartments:', error);
+      }
+    }
+
+   
+    fetchApartments();
+}, []);
+
+  
+
+
+
 
   return (
     <LoadScript googleMapsApiKey="AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8">
@@ -47,22 +75,24 @@ export const MapComponent = () => {
         center={center}
         zoom={13}
       >
-        {apartments.map((apartment, idx) => (
+        {apartments && apartments.map && apartments.map((apartment, idx) => (
           <Marker
             key={idx}
-            position={{ lat: apartment.latitude, lng: apartment.longitude }}
+            position={{ lat: apartment.location.address.coordinate.lat, lng: apartment.location.address.coordinate.lon }}
             onClick={() => setSelectedApartment(apartment)}
           />
         ))}
         {selectedApartment && (
           <InfoWindow
-            position={{ lat: selectedApartment.latitude, lng: selectedApartment.longitude }}
+            position={{ lat: selectedApartment.location.address.coordinate.lat, lng: selectedApartment.location.address.coordinate.lon }}
             onCloseClick={() => setSelectedApartment(null)}
           >
             <div>
-              <h3>{selectedApartment.address}</h3>
-              <p>{selectedApartment.price}</p>
-              <p>{selectedApartment.bedrooms} beds, {selectedApartment.bathrooms} baths</p>
+              <h3>{selectedApartment.location.address.line} {selectedApartment.location.address.postal_code} , {selectedApartment.location.address.state_code} </h3>
+             
+              
+              <p>{selectedApartment.list_price}</p>
+              <p>{selectedApartment.description.beds || selectedApartment.description.beds_max } beds, {selectedApartment.description.baths || selectedApartment.description.baths_max} baths</p>
             </div>
           </InfoWindow>
         )}

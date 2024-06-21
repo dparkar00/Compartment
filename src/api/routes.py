@@ -5,14 +5,14 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-import http.client
-
+import requests
 
 
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
+
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -27,17 +27,17 @@ def handle_hello():
 
 @api.route('/apartments', methods=['GET'])
 def get_apartments():
-    conn = http.client.HTTPSConnection("realtor-search.p.rapidapi.com")
+    
+    url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
+
+    querystring = {"location":"city:San Francisco, CA","sortBy":"newest","propertyType":"apartment"}
 
     headers = {
-        'x-rapidapi-key': "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
-        'x-rapidapi-host': "realtor-search.p.rapidapi.com"
+        "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
+        "x-rapidapi-host": "realtor-search.p.rapidapi.com"
     }
 
-    conn.request("GET", "/properties/search-rent?location=city%3ASan%20Francisco%2C%20CA&sortBy=best_match&propertyType=apartment", headers=headers)
-
-    res = conn.getresponse()
-    data = res.read()
-    data_json = data.decode("utf-8")
-    return jsonify(data_json)
+    response = requests.get(url, headers=headers, params=querystring)
+    data = response.json()
+    return jsonify(data),200
    
