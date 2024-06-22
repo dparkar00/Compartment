@@ -2,9 +2,10 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for, send_from_directory
+from flask import Flask, request, jsonify, url_for, send_from_directory, render_template
 from flask_migrate import Migrate
 from flask_swagger import swagger
+from flask_cors import CORS
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.routes import api
@@ -18,6 +19,8 @@ static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+CORS(app)
 
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
@@ -55,6 +58,18 @@ def sitemap():
     if ENV == "development":
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
+
+
+#route for Categories
+@app.route('/api/categories')
+def get_categories():
+    # Replace with your data logic
+    category = [
+        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
+        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
+        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
+    ]
+    return jsonify(category)
 
 # any other endpoint will try to serve it like a static file
 
