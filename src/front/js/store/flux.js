@@ -61,7 +61,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 		
 		signUp: async (email, password) => {
 			try {
-				const req = await fetch('https://psychic-trout-v6v567rrxwv9hwxg4-3001.app.github.dev/api/signup', {
+				const req = await fetch(process.env.BACKEND_URL + '/api/signup', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
@@ -81,7 +81,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 		},
 		logIn: async (email, password) => {
 			try {
-				const req = await fetch('https://psychic-trout-v6v567rrxwv9hwxg4-3001.app.github.dev/api/signin', {
+				const req = await fetch(process.env.BACKEND_URL + "/api/signin", {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
@@ -108,7 +108,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 						'Authorization': 'Bearer' + sessionStorage.getItem('token')
 					}
 				}
-				let response = await fetch('https://psychic-trout-v6v567rrxwv9hwxg4-3001.app.github.dev/api/private', options)
+				let response = await fetch(process.env.BACKEND_URL + "/api/private", options)
 				let data = await response.json()
 			}
 			catch (error) {

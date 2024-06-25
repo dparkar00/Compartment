@@ -7,6 +7,11 @@ from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 import requests
 
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+from datetime import datetime, timedelta
+import hashlib
+from werkzeug.security import generate_password_hash
+
 # UPDATED
 
 
@@ -45,111 +50,33 @@ def get_apartments():
    
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ------------ This is where I am starting the copy and pastes from the JWT Project ------------------
-
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
-from datetime import datetime, timedelta
-import hashlib
-from werkzeug.security import generate_password_hash
-
-
 @api.route('/signin', methods=['POST'])
 def create_signin():
     email = request.json.get('email', None)
     password = request.json.get('password', None)
     if email is not None and password is not None:
-        #password = hashlib.sha256(password.encode()).hexdigest()
-        user = User.query.filter_by(email = email, password = password)
-    access_token = create_access_token(identity = email)
-    return jsonify(access_token = access_token)
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        user = User.query.filter_by(email = email, password = hashed_password).first()
+        if not user: 
+            return jsonify(error = "Invalid credentials"), 404
+        access_token = create_access_token(identity = user.id)
+        return jsonify(access_token = access_token)
+    return jsonify(error = "Missing email or password"), 400
 
-@api.route('user/<int:id>', methods=['GET'])
-def get_user(id):
-    user = User.query.get(id)
+@api.route('user', methods=['GET'])
+@jwt_required()
+def get_user():
+    id = get_jwt_identity()
+    user = User.query.get(id).first()
     if user is None:
         raise APIException('user not found', status_code = 404)
     return jsonify(user.serialize()), 200
 
-@api.route('/user', methods=['GET'])
-def get_all_users():
-    users = User.query.all()
-    all_users = list(map(lambda x:x.serialize(), users))
-    return jsonify(all_users), 200
+# @api.route('/user', methods=['GET'])
+# def get_all_users():
+#     users = User.query.all()
+#     all_users = list(map(lambda x:x.serialize(), users))
+#     return jsonify(all_users), 200
 
 
 @api.route('/signup', methods = ['POST'])
@@ -161,22 +88,100 @@ def create_user():
         return jsonify({'error': 'You need to specify the password'}), 400
     email = body['email']
     password = body['password']
-    #hashed_password = generate_password_hash(password, method='sha256')
-    new_user = User(email = email, password = password, is_active=True)
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+    new_user = User(email = email, password = hashed_password, is_active=True)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'Signup successful'}), 200
 
-@api.route('/private', methods=['GET'])
-@jwt_required()
-def handle_private():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+# @api.route('/private', methods=['GET'])
+# @jwt_required()
+# def handle_private():
+#     current_user_id = get_jwt_identity()
+#     user = User.query.get(current_user_id)
     
-    if user is None:
-        return jsonify({"msg": "Please signin"})
-    else :
-        return jsonify({"user_id": user.id, "email": user.email}), 200
+#     if user is None:
+#         return jsonify({"msg": "Please signin"})
+#     else :
+#         return jsonify({"user_id": user.id, "email": user.email}), 200
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
