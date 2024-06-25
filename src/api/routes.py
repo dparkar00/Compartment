@@ -41,3 +41,8 @@ def get_apartments():
     data = response.json()
     return jsonify(data),200
    
+@api.route('/chatgpt/ask', methods = ["POST"])
+def generate_city_list ():
+    request_body = request.json
+    user_prompt = request_body["user_prompt"]
+    if not user_prompt: return jsonify(message = "Please provide a prompt"), 400
