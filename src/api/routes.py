@@ -6,7 +6,9 @@ from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 import requests
+from openai import OpenAI
 
+client = OpenAI()
 
 api = Blueprint('api', __name__)
 
@@ -46,3 +48,23 @@ def generate_city_list ():
     request_body = request.json
     user_prompt = request_body["user_prompt"]
     if not user_prompt: return jsonify(message = "Please provide a prompt"), 400
+    completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": """
+        I'm going to ask you questions about different places to live, please answer with JSON only. Do not use anything that is not JSON. Do not answer questions about cities outside of the United States. Return a JSON error if so. You should return a list of 10 cities that matches the interests described for the user. The JSONs should have the following format: 
+
+        {
+        weather: "[replace with climate] - [replace with average temperature]",
+        city: "string",
+        state: "string",
+        population: int,
+        populationDensity: int,
+        message: "Some good thing about this city and how it matches the user interests.",
+        walkable: [boolean yes/no],
+        }
+        """},
+        {"role": "user", "content": user_prompt}
+  ]
+)
+    return jsonify(result = completion.choices[0].message)
