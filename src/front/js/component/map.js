@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import {PropertyListing} from '../component/propertyListing'
+
 import { Context } from '../store/appContext';
 
 const containerStyle = {
