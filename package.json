@@ -74,9 +74,11 @@
 	},
 	"dependencies": {
 		"@react-google-maps/api": "^2.19.3",
+		"bootstrap": "^5.3.3",
 		"npm": "^10.8.1",
 		"prop-types": "^15.6.1",
 		"react": "^16.8.4",
+		"react-bootstrap": "^2.10.3",
 		"react-dom": "^16.8.4",
 		"react-google-maps": "^9.4.5",
 		"react-polyfills": "0.0.1",
