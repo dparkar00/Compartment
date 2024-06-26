@@ -1,6 +1,7 @@
 // src/components/MapComponent.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import {PropertyListing} from '../component/propertyListing'
 import { Context } from '../store/appContext';
 
 const containerStyle = {
@@ -87,13 +88,7 @@ export const MapComponent = () => {
             position={{ lat: selectedApartment.location.address.coordinate.lat, lng: selectedApartment.location.address.coordinate.lon }}
             onCloseClick={() => setSelectedApartment(null)}
           >
-            <div>
-              <h3>{selectedApartment.location.address.line} {selectedApartment.location.address.postal_code} , {selectedApartment.location.address.state_code} </h3>
-             
-              
-              <p>{selectedApartment.list_price}</p>
-              <p>{selectedApartment.description.beds || selectedApartment.description.beds_max } beds, {selectedApartment.description.baths || selectedApartment.description.baths_max} baths</p>
-            </div>
+            <PropertyListing property={selectedApartment} />
           </InfoWindow>
         )}
       </GoogleMap>
