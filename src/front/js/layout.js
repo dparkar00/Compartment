@@ -17,6 +17,7 @@ import { Category } from "./pages/categories";
 import { CategoryFavorites } from "./pages/categoryFavorites";
 import SignIn from "./component/signIn";
 import SignUp from "./component/signUp";
+import App from "./component/openAI";
 
 // ------ My imports ------------
 
@@ -40,6 +41,7 @@ const Layout = () => {
                         <Route element={<Demo />} path="/demo" />
                         <Route element={<SignUp />} path="/signUp" />
                         <Route element={<SignIn />} path="/signIn" />
+                        <Route element={<App />} path="/chatgpt/ask" />
                         <Route element={<SearchPage />} path="/searchPage" />
                         <Route element={<Single />} path="/single/:theid" />
                         <Route element={<h1>Not found!</h1>} />

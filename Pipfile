@@ -19,11 +19,9 @@ cloudinary = "*"
 flask-admin = "*"
 typing-extensions = "*"
 flask-jwt-extended = "*"
-<<<<<<< HEAD
 openai = "*"
-=======
 requests = "*"
->>>>>>> c623ac063917a9bc5e95b8ab78abbdd95c3c09f5
+
 
 [requires]
 python_version = "3.10"

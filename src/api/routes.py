@@ -12,6 +12,7 @@ import hashlib
 from werkzeug.security import generate_password_hash
 from openai import OpenAI
 
+
 client = OpenAI()
 
 api = Blueprint('api', __name__)
