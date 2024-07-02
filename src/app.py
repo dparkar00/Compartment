@@ -61,18 +61,6 @@ def sitemap():
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
 
-
-#route for Categories
-@app.route('/api/categories')
-def get_categories():
-    # Replace with your data logic
-    category = [
-        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
-        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
-        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
-    ]
-    return jsonify(category)
-
 # any other endpoint will try to serve it like a static file
 
 

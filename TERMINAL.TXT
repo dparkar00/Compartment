@@ -1,13 +1,17 @@
+BACK END
 pipenv install
 pipenv shell
 
 pipenv install flask
 pipenv install flask-jwt-extended
+pip install requests
 
 pipenv run migrate
 pipenv run upgrade
 pipenv run start
 
 
-npm run install
+FRONT END
+npm install
+npm i react-google-maps
 npm run start

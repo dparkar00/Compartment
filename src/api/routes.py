@@ -105,94 +105,29 @@ def create_user():
 #     else :
 #         return jsonify({"user_id": user.id, "email": user.email}), 200
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#----------------------------------------JP-----------------------------------------
+
+#route for Categories
+@api.route('/categories')
+def get_categories():
+    # Replace with your data logic
+    category = [
+        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
+        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
+        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
+    ]
+    return jsonify(category)
+
+#route for createCategory
+@api.route('/create_category', methods=['POST'])
+def create_category():
+    data = request.get_json()
+    category_name = data.get('name')
+
+    # Check if category_name is provided and not empty
+    if category_name:
+        # Add the category to the list (simulating storage)
+        category.append(category_name)
+        return jsonify({'message': 'Category created successfully'}), 200
+    else:
+        return jsonify({'error': 'Category name is required'}), 400
