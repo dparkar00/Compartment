@@ -103,7 +103,7 @@ def generate_city_list ():
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": """
-        I'm going to ask you questions about different places to live, please answer with JSON only. Do not use anything that is not JSON. Do not answer questions about cities outside of the United States. Return a JSON error if so. You should return a list of 10 cities that matches the interests described for the user. The JSONs should have the following format: 
+        I'm going to ask you questions about different places to live, please answer only with cities names and their attributes as well as with JSON only. Do not use anything that is not JSON. Do not answer questions about cities outside of the United States. Return a JSON error if so. You should return a list of 10 cities that matches the interests described for the user. The JSONs should have the following format: 
 
         {
         weather: "[replace with climate] - [replace with average temperature]",

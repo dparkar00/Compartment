@@ -16,7 +16,7 @@ function App() {
             method: "POST",
             body: JSON.stringify({
                 "model": "gpt-3.5-turbo",
-                "messages": [{ "role": "user", "content": "Say this is a test!" }],
+                "messages": [{ "role": "user", "content": userPrompt }],
                 "temperature": 0.7
             }),
             headers: {
@@ -28,12 +28,20 @@ function App() {
 
         console.log("Received response:", data);
 
-        if(data.error) {
+        if (response.ok) {
+            const content = data.choices[0].message.content;
+            setResponse(content);
+        } else {
             console.error("Error during API call:", data.error);
+            setResponse("An error occurred while processing your request.");
         }
-        else {
-            setResponse(data.result);
-        }
+
+        // if(data.error) {
+        //     console.error("Error during API call:", data.error);
+        // }
+        // else {
+        //     setResponse(data.result);
+        // }
 
         // setResponse({ error: "An error occurred while processing your request." });
     };
