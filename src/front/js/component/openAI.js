@@ -15,11 +15,8 @@ function App() {
         let response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             body: JSON.stringify({
-                userId: 1,
-                title: "fetch openai ",
-                completed: false,
                 "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": "Say this is a test!"}],
+                "messages": [{ "role": "user", "content": "Say this is a test!" }],
                 "temperature": 0.7
             }),
             headers: {
@@ -27,22 +24,16 @@ function App() {
                 "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
             }
         });
-        let data = response.json();
+        let data = await response.json();
 
         console.log("Received response:", data);
 
-        console.error("Error during API call:", error);
-
-        // if (error.response) {
-        //     // The request was made and the server responded with a status code
-        //     // that falls out of the range of 2xx
-        //     console.error("Response data:", error.response.data);
-        //     console.error("Response status:", error.response.status);
-        //     console.error("Response headers:", error.response.headers);
-        // }
-        // else {
+        if(data.error) {
+            console.error("Error during API call:", data.error);
+        }
+        else {
             setResponse(data.result);
-        // }
+        }
 
         // setResponse({ error: "An error occurred while processing your request." });
     };
