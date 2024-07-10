@@ -1,7 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, request, jsonify, current_app, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
@@ -12,6 +12,7 @@ import hashlib
 from werkzeug.security import generate_password_hash
 from openai import OpenAI
 import json
+import logging
 
 
 client = OpenAI()
@@ -19,7 +20,7 @@ client = OpenAI()
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
-CORS(api)
+CORS(api, resources={r"/*": {"origins": "*"}})
 
 
 
@@ -35,6 +36,7 @@ def handle_hello():
 
 @api.route('/apartments', methods=['GET'])
 def get_apartments():
+    print(f"Fetched {len(data.get('data', {}).get('results', []))} apartments")
     
     url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
 
@@ -50,54 +52,130 @@ def get_apartments():
 
     processed_data = process_realtor_data(data)
     return jsonify(processed_data),200
-   
+
+
 def process_realtor_data(data):
+    logging.info("Starting to process realtor data")
     processed_listings = []
     
-    for listing in data.get('data', {}).get('results', []):
-        processed_listing = {
-            'property_id': listing.get('property_id'),
-            'status': listing.get('status'),
-            'price': listing.get('list_price'),
-            'address': {
-                'line': listing.get('location', {}).get('address', {}).get('line'),
-                'city': listing.get('location', {}).get('address', {}).get('city'),
-                'state': listing.get('location', {}).get('address', {}).get('state'),
-                'postal_code': listing.get('location', {}).get('address', {}).get('postal_code'),
-            },
-            'bedrooms': listing.get('description', {}).get('beds'),
-            'bathrooms': listing.get('description', {}).get('baths_full_calc'),
-            'square_feet': listing.get('description', {}).get('sqft'),
-            'property_type': listing.get('description', {}).get('type'),
-            'photo_url': listing.get('primary_photo', {}).get('href'),
-        }
-        processed_listings.append(processed_listing)
-    
+    if not data:
+        logging.error("Input data is empty or None")
+        return processed_listings
+
+    results = data.get('data', {}).get('results', [])
+    logging.info(f"Found {len(results)} listings to process")
+
+    for index, listing in enumerate(results):
+        logging.info(f"Processing listing {index + 1}")
+        try:
+            processed_listing = {
+                'property_id': listing.get('property_id'),
+                'status': listing.get('status'),
+                'price': listing.get('list_price'),
+                'address': {
+                    'line': listing.get('location', {}).get('address', {}).get('line'),
+                    'city': listing.get('location', {}).get('address', {}).get('city'),
+                    'state': listing.get('location', {}).get('address', {}).get('state'),
+                    'postal_code': listing.get('location', {}).get('address', {}).get('postal_code'),
+                },
+                'bedrooms': listing.get('description', {}).get('beds'),
+                'bathrooms': listing.get('description', {}).get('baths_full_calc'),
+                'square_feet': listing.get('description', {}).get('sqft'),
+                'property_type': listing.get('description', {}).get('type'),
+                'photo_url': listing.get('primary_photo', {}).get('href'),
+            }
+            processed_listings.append(processed_listing)
+            logging.info(f"Successfully processed listing {index + 1}")
+        except Exception as e:
+            logging.error(f"Error processing listing {index + 1}: {str(e)}")
+            logging.error(f"Problematic listing data: {listing}")
+
+    logging.info(f"Finished processing. Total processed listings: {len(processed_listings)}")
     return processed_listings
 
 
-    @api.route('/analyze_apartments', methods=['POST'])
-    def analyze_apartments():
-        user_preferences = request.json.get('preferences', '')
+# @api.route('/analyze_apartments', methods=['POST'])
+# def analyze_apartments():
+#     user_preferences = request.json.get('preferences', {})
 
-        print("analyze_apartments endpoint was called")
+#     current_app.logger.info("analyze_apartments endpoint was called")
+    
+#     # Fetch apartment data
+#     url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
+#     querystring = {
+#         "location": user_preferences.get("location", "San Francisco, CA"),
+#         "sortBy": "newest",
+#         "propertyType": "apartment"
+#     }
+#     headers = {
+#         "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
+#         "x-rapidapi-host": "realtor-search.p.rapidapi.com"
+#     }
+#     response = requests.get(url, headers=headers, params=querystring)
+#     data = response.json()
+    
+#     # Process apartment data
+#     processed_data = process_realtor_data(data)
+#     print(f"Processed {len(processed_data)} apartments")
+    
+#     # Analyze with OpenAI
+#     openai_prompt = f"Analyze these apartments based on the following user preferences: {user_preferences}\n\nApartment data: {json.dumps(processed_data)}"
+#     print("Sending request to OpenAI")
+#     completion = client.chat.completions.create(
+#         model="gpt-3.5-turbo",
+#         messages=[
+#             {"role": "system", "content": "You are a helpful assistant that analyzes apartment listings based on user preferences."},
+#             {"role": "user", "content": openai_prompt}
+#         ]
+#     )
+    
+#     print("Received response from OpenAI")
+#     analysis = completion['choices'][0]['message']['content']
+    
+#     # Combine results
+#     result = {
+#         "apartments": processed_data,
+#         "analysis": analysis
+#     }
+    
+#     return jsonify(result), 200
+
+@api.route('/analyze_apartments', methods=['POST'])
+def analyze_apartments():
+    print("Received request to /analyze_apartments")
+    try:
+        if not request.is_json:
+            raise ValueError("Request data must be in JSON format")
+
+        user_preferences = request.json.get('preferences', {})
+        print("Received preferences:", user_preferences)
+
+        current_app.logger.info("analyze_apartments endpoint was called")
         
         # Fetch apartment data
         url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
-        querystring = {"location":"city:San Francisco, CA","sortBy":"newest","propertyType":"apartment"}
+        querystring = {
+            "location": user_preferences.get("location", "city: San Francisco, CA"),
+            "sortBy": "newest",
+            "propertyType": "apartment"
+        }
         headers = {
             "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
             "x-rapidapi-host": "realtor-search.p.rapidapi.com"
         }
+        print("Sending request to RapidAPI")
         response = requests.get(url, headers=headers, params=querystring)
+        response.raise_for_status()  # Raise an error for bad status codes
         data = response.json()
-        
-        # Process apartment data
+        print("Received response from RapidAPI")
+       
+        # Process apartment data (assuming process_realtor_data is a defined function)
         processed_data = process_realtor_data(data)
+        print(f"Processed {len(processed_data)} apartments")
         
         # Analyze with OpenAI
         openai_prompt = f"Analyze these apartments based on the following user preferences: {user_preferences}\n\nApartment data: {json.dumps(processed_data)}"
-        
+        print("Sending request to OpenAI")
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -106,6 +184,7 @@ def process_realtor_data(data):
             ]
         )
         
+        print("Received response from OpenAI")
         analysis = completion.choices[0].message.content
         
         # Combine results
@@ -114,7 +193,12 @@ def process_realtor_data(data):
             "analysis": analysis
         }
         
+        print("Sending response back to client")
         return jsonify(result), 200
+    except Exception as e:
+        print(f"Error in analyze_apartments: {str(e)}")
+        current_app.logger.error(f"Error in analyze_apartments: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 
 @api.route('/signin', methods=['POST'])
@@ -161,42 +245,7 @@ def create_user():
     db.session.commit()
     return jsonify({'message': 'Signup successful'}), 200
 
-@api.route('/homesearch', methods=["POST"])
-def generate_home_list():
-    request_body = request.json
-    user_prompt = request_body["user_prompt"]
-    if not user_prompt:
-        return jsonify(message="Please provide a prompt"), 400
-    
-    completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": """
-        I'm going to ask you questions about homes. Do not use anything that is not JSON. You should return a list of 5 homes that matches the interests described for the user. The JSONs should have the following format:
 
-        {
-        city: "string",
-        state: "string",
-        price: int,
-        bedrooms: int,
-        bathrooms: float,
-        squareFeet: int,
-        }
-        """},
-        {"role": "user", "content": user_prompt}
-    ]
-    )
-
-    initial_response = json.loads(completion.choices[0].message.content)
-    city = initial_response['city']
-    state = initial_response['state']
-    price = initial_response['price']
-    bedrooms = initial_response['bedrooms']
-    yearBuilt = initial_response['yearBuilt']
-    squareFeet = initial_response['squareFeet']
-    bathrooms = initial_response['bathrooms']
-
-    return jsonify(result=json.loads(completion.choices[0].message.content))
 
 @api.route('/chatgpt/ask', methods = ["POST"])
 def generate_city_list ():

@@ -18,7 +18,7 @@ import { CategoryFavorites } from "./pages/categoryFavorites";
 import SignIn from "./component/signIn";
 import SignUp from "./component/signUp";
 import App from "./component/openAI";
-import HomeSearch from "./component/openAI"
+import HomeSearch from "./component/homeSearch";
 
 // ------ My imports ------------
 
@@ -27,8 +27,6 @@ const Layout = () => {
     //the basename is used when your project is published in a subdirectory and not in the root of the domain
     // you can set the basename on the .env file located at the root of this project, E.g: BASENAME=/react-hello-webapp/
     const basename = process.env.BASENAME || "";
-
-    if(!process.env.BACKEND_URL || process.env.BACKEND_URL == "") return <BackendURL/ >;
 
     return (
         <div>
