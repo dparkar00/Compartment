@@ -1,6 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+
 from flask import Flask, request, jsonify, current_app, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
@@ -13,7 +14,7 @@ from werkzeug.security import generate_password_hash
 from openai import OpenAI
 import json
 import logging
-
+import os
 
 client = OpenAI()
 
@@ -22,123 +23,87 @@ api = Blueprint('api', __name__)
 # Allow CORS requests to this API
 CORS(api, resources={r"/*": {"origins": "*"}})
 
-
-
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
-
     response_body = {
         "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
     }
-
     return jsonify(response_body), 200
-
 
 @api.route('/apartments', methods=['GET'])
 def get_apartments():
-    print(f"Fetched {len(data.get('data', {}).get('results', []))} apartments")
+    base_url = "https://zillow-com1.p.rapidapi.com/propertyExtendedSearch"
     
-    url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
-
-    querystring = {"location":"city:San Francisco, CA","sortBy":"newest","propertyType":"apartment"}
+    # Get parameters from the request, with defaults
+    location = request.args.get('location', 'San Francisco, CA')
+    home_type = request.args.get('home_type', 'Apartments')
+    sort = request.args.get('sort', 'Newest')
+    bedrooms = request.args.get('bedrooms')
+    has_pool = request.args.get('hasPool')
+    has_fireplace = request.args.get('hasFireplace')
+    near_school = request.args.get('nearSchool')
+    
+    url = f"{base_url}?location={location}&home_type={home_type}&sort={sort}"
+    if bedrooms:
+        url += f'&bedrooms={bedrooms}'
+    if has_pool:
+        url += '&hasPool=true'
+    if has_fireplace:
+        url += '&hasFireplace=true'
+    if near_school:
+        url += '&nearbySchools=true'
 
     headers = {
-        "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
-        "x-rapidapi-host": "realtor-search.p.rapidapi.com"
+        "X-RapidAPI-Key": os.getenv('REACT_APP_RAPIDAPI_KEY'),
+        "X-RapidAPI-Host": "zillow-com1.p.rapidapi.com"
     }
 
-    response = requests.get(url, headers=headers, params=querystring)
-    data = response.json()
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching data from Zillow API: {str(e)}")
+        return jsonify({"error": "Failed to fetch data from Zillow API"}), 500
 
-    processed_data = process_realtor_data(data)
-    return jsonify(processed_data),200
+    processed_data = process_zillow_data(data)
+    print(f"Fetched {len(processed_data)} apartments")
+    return jsonify(processed_data), 200
 
-
-def process_realtor_data(data):
-    logging.info("Starting to process realtor data")
+def process_zillow_data(data):
     processed_listings = []
-    
-    if not data:
-        logging.error("Input data is empty or None")
-        return processed_listings
-
-    results = data.get('data', {}).get('results', [])
-    logging.info(f"Found {len(results)} listings to process")
-
-    for index, listing in enumerate(results):
-        logging.info(f"Processing listing {index + 1}")
-        try:
-            processed_listing = {
-                'property_id': listing.get('property_id'),
-                'status': listing.get('status'),
-                'price': listing.get('list_price'),
-                'address': {
-                    'line': listing.get('location', {}).get('address', {}).get('line'),
-                    'city': listing.get('location', {}).get('address', {}).get('city'),
-                    'state': listing.get('location', {}).get('address', {}).get('state'),
-                    'postal_code': listing.get('location', {}).get('address', {}).get('postal_code'),
-                },
-                'bedrooms': listing.get('description', {}).get('beds'),
-                'bathrooms': listing.get('description', {}).get('baths_full_calc'),
-                'square_feet': listing.get('description', {}).get('sqft'),
-                'property_type': listing.get('description', {}).get('type'),
-                'photo_url': listing.get('primary_photo', {}).get('href'),
-            }
-            processed_listings.append(processed_listing)
-            logging.info(f"Successfully processed listing {index + 1}")
-        except Exception as e:
-            logging.error(f"Error processing listing {index + 1}: {str(e)}")
-            logging.error(f"Problematic listing data: {listing}")
-
-    logging.info(f"Finished processing. Total processed listings: {len(processed_listings)}")
+    props = data.get('props', [])
+    print(f"Number of properties in raw data: {len(props)}")
+    for listing in props:
+        processed_listing = {
+            'zpid': listing.get('zpid'),
+            'address': listing.get('address'),
+            'price': listing.get('price'),
+            'bedrooms': listing.get('bedrooms'),
+            'bathrooms': listing.get('bathrooms'),
+            'living_area': listing.get('livingArea'),
+            'home_type': listing.get('homeType'),
+            'image_url': listing.get('imgSrc'),
+            'has_fireplace': listing.get('hasFireplace', False),
+            'has_pool': listing.get('hasPool', False),
+            'nearby_schools': listing.get('nearbySchools', []),
+            'year_built': listing.get('yearBuilt'),
+            'lot_size': listing.get('lotSize'),
+            'parking': listing.get('parkingType'),
+            'heating': listing.get('heatingType'),
+            'cooling': listing.get('coolingType'),
+            'appliances': listing.get('appliances', []),
+            'neighborhood': listing.get('neighborhood'),
+            'walkScore': listing.get('walkScore'),
+            'transitScore': listing.get('transitScore'),
+            'bikeScore': listing.get('bikeScore'),
+            'crime_rate': listing.get('crimeRate'),
+            'nearby_amenities': listing.get('nearbyAmenities', []),
+        }
+        processed_listings.append(processed_listing)
+    print(f"Number of processed listings: {len(processed_listings)}")
     return processed_listings
 
-
-# @api.route('/analyze_apartments', methods=['POST'])
-# def analyze_apartments():
-#     user_preferences = request.json.get('preferences', {})
-
-#     current_app.logger.info("analyze_apartments endpoint was called")
-    
-#     # Fetch apartment data
-#     url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
-#     querystring = {
-#         "location": user_preferences.get("location", "San Francisco, CA"),
-#         "sortBy": "newest",
-#         "propertyType": "apartment"
-#     }
-#     headers = {
-#         "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
-#         "x-rapidapi-host": "realtor-search.p.rapidapi.com"
-#     }
-#     response = requests.get(url, headers=headers, params=querystring)
-#     data = response.json()
-    
-#     # Process apartment data
-#     processed_data = process_realtor_data(data)
-#     print(f"Processed {len(processed_data)} apartments")
-    
-#     # Analyze with OpenAI
-#     openai_prompt = f"Analyze these apartments based on the following user preferences: {user_preferences}\n\nApartment data: {json.dumps(processed_data)}"
-#     print("Sending request to OpenAI")
-#     completion = client.chat.completions.create(
-#         model="gpt-3.5-turbo",
-#         messages=[
-#             {"role": "system", "content": "You are a helpful assistant that analyzes apartment listings based on user preferences."},
-#             {"role": "user", "content": openai_prompt}
-#         ]
-#     )
-    
-#     print("Received response from OpenAI")
-#     analysis = completion['choices'][0]['message']['content']
-    
-#     # Combine results
-#     result = {
-#         "apartments": processed_data,
-#         "analysis": analysis
-#     }
-    
-#     return jsonify(result), 200
 
 @api.route('/analyze_apartments', methods=['POST'])
 def analyze_apartments():
@@ -153,35 +118,104 @@ def analyze_apartments():
         current_app.logger.info("analyze_apartments endpoint was called")
         
         # Fetch apartment data
-        url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
-        querystring = {
-            "location": user_preferences.get("location", "city: San Francisco, CA"),
-            "sortBy": "newest",
-            "propertyType": "apartment"
-        }
+        base_url = "https://zillow-com1.p.rapidapi.com/propertyExtendedSearch"
+        
+        location = user_preferences.get("location", "San Francisco, CA").split(" with ")[0].strip()
+        sort = user_preferences.get("sort", "Newest")
+        min_price = user_preferences.get("min_price")
+        max_price = user_preferences.get("max_price")
+        min_sqft = user_preferences.get("min_sqft")
+        max_sqft = user_preferences.get("max_sqft")
+        bedrooms = user_preferences.get('bedrooms')
+        bathrooms = user_preferences.get('bathrooms')
+        
+        # Construct URL with parameters
+        url = f"{base_url}?location={location}&sort={sort}"
+        if min_price:
+            url += f'&price_min={min_price}'
+        if max_price:
+            url += f'&price_max={max_price}'
+        if min_sqft:
+            url += f'&sqft_min={min_sqft}'
+        if max_sqft:
+            url += f'&sqft_max={max_sqft}'
+        if bedrooms:
+            url += f'&beds_min={bedrooms}&beds_max={bedrooms}'
+        if bathrooms:
+            url += f'&baths_min={bathrooms}&baths_max={bathrooms}'
+
+        print(f"Constructed URL: {url}")  # Print the constructed URL
+
         headers = {
-            "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
-            "x-rapidapi-host": "realtor-search.p.rapidapi.com"
+            "X-RapidAPI-Key": os.getenv('REACT_APP_RAPIDAPI_KEY'),
+            "X-RapidAPI-Host": "zillow-com1.p.rapidapi.com"
         }
-        print("Sending request to RapidAPI")
-        response = requests.get(url, headers=headers, params=querystring)
-        response.raise_for_status()  # Raise an error for bad status codes
+
+        print("Sending request to Zillow API")
+        response = requests.get(url, headers=headers)
+        print(f"Zillow API response status: {response.status_code}")
+        print(f"Full Zillow API response: {json.dumps(response.json(), indent=2)}")  # Print the full response
+        response.raise_for_status()
         data = response.json()
-        print("Received response from RapidAPI")
+        print("Received response from Zillow API")
        
-        # Process apartment data (assuming process_realtor_data is a defined function)
-        processed_data = process_realtor_data(data)
+        # Process apartment data
+        processed_data = process_zillow_data(data)
         print(f"Processed {len(processed_data)} apartments")
         
+        if not processed_data:
+            print("No properties found after processing")
+            return jsonify({
+                "apartments": [],
+                "analysis": "No properties found matching your criteria. Please try adjusting your search parameters."
+            }), 200
+
+        # Filter processed data based on user preferences
+        filtered_data = [prop for prop in processed_data if (
+            (not min_price or prop['price'] >= int(min_price)) and
+            (not max_price or prop['price'] <= int(max_price)) and
+            (not min_sqft or prop['living_area'] >= int(min_sqft)) and
+            (not max_sqft or prop['living_area'] <= int(max_sqft)) and
+            (not bedrooms or prop['bedrooms'] == int(bedrooms)) and
+            (not bathrooms or prop['bathrooms'] == float(bathrooms))
+        )]
+        print(f"Filtered {len(filtered_data)} properties matching user preferences")
+
+        if not filtered_data:
+            print("No properties found after filtering")
+            return jsonify({
+                "apartments": [],
+                "analysis": "No properties found matching your criteria. Please try adjusting your search parameters."
+            }), 200
+
+        print(f"Filtered data sample: {json.dumps(filtered_data[:2], indent=2)}")
+        
         # Analyze with OpenAI
-        openai_prompt = f"Analyze these apartments based on the following user preferences: {user_preferences}\n\nApartment data: {json.dumps(processed_data)}"
+        openai_prompt = f"""
+        Analyze these properties based on the following user preferences: {user_preferences}
+
+        Pay special attention to features that are attractive to homeowners, such as:
+        1. Home price (range: {min_price if min_price else 'Not specified'} to {max_price if max_price else 'Not specified'})
+        2. Square footage (range: {min_sqft if min_sqft else 'Not specified'} to {max_sqft if max_sqft else 'Not specified'})
+        3. Number of bedrooms (preferred: {bedrooms if bedrooms else 'Not specified'})
+        4. Number of bathrooms (preferred: {bathrooms if bathrooms else 'Not specified'})
+        5. Location
+
+        For each property, highlight the features that best match the user's preferences and those that could be particularly attractive to homeowners.
+
+        Property data: {json.dumps(filtered_data)}
+
+        Please provide a detailed analysis of the top 3-5 properties that best match the user's preferences, 
+        including mentions of the special features listed above where applicable.
+        """
         print("Sending request to OpenAI")
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that analyzes apartment listings based on user preferences."},
+                {"role": "system", "content": "You are a helpful assistant that analyzes property listings based on user preferences. Pay attention to all details provided, including features that are particularly attractive to homeowners."},
                 {"role": "user", "content": openai_prompt}
-            ]
+            ],
+            max_tokens=1500  # Adjust as needed
         )
         
         print("Received response from OpenAI")
@@ -189,7 +223,7 @@ def analyze_apartments():
         
         # Combine results
         result = {
-            "apartments": processed_data,
+            "apartments": filtered_data,
             "analysis": analysis
         }
         
@@ -197,9 +231,10 @@ def analyze_apartments():
         return jsonify(result), 200
     except Exception as e:
         print(f"Error in analyze_apartments: {str(e)}")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error args: {e.args}")
         current_app.logger.error(f"Error in analyze_apartments: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
-
 
 @api.route('/signin', methods=['POST'])
 def create_signin():
@@ -223,13 +258,6 @@ def get_user():
         raise APIException('user not found', status_code = 404)
     return jsonify(user.serialize()), 200
 
-# @api.route('/user', methods=['GET'])
-# def get_all_users():
-#     users = User.query.all()
-#     all_users = list(map(lambda x:x.serialize(), users))
-#     return jsonify(all_users), 200
-
-
 @api.route('/signup', methods = ['POST'])
 def create_user():
     body = request.get_json()
@@ -245,10 +273,8 @@ def create_user():
     db.session.commit()
     return jsonify({'message': 'Signup successful'}), 200
 
-
-
 @api.route('/chatgpt/ask', methods = ["POST"])
-def generate_city_list ():
+def generate_city_list():
     request_body = request.json
     user_prompt = request_body["user_prompt"]
     if not user_prompt: return jsonify(message = "Please provide a prompt"), 400
@@ -285,3 +311,4 @@ def generate_city_list ():
 #         return jsonify({"msg": "Please signin"})
 #     else :
 #         return jsonify({"user_id": user.id, "email": user.email}), 200
+

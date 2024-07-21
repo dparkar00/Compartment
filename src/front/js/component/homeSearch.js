@@ -7,39 +7,7 @@ function HomeSearch() {
   const [response, setResponse] = useState(null);
   const [userPrompt, setUserPrompt] = useState('');
 
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   setLoading(true);
-  //   setError(null);
 
-  //   try {
-  //     const preferences = parsePreferences(userPrompt);
-  //     if (!preferences) {
-  //       throw new Error('Could not parse input. Please describe your preferences clearly.');
-  //     }
-
-  //     const response = await fetch("https://bug-free-train-r4pxjgx5vp254xp-3001.app.github.dev/api/analyze_apartments", {
-  //       method: "POST",
-  //       body: JSON.stringify(preferences),
-  //       headers: {
-  //         "Content-type": "application/json"
-  //       }
-  //     });
-
-  //     const data = await response.json();
-  //     console.log("Received response:", data);
-
-  //     if (response.ok) {
-  //       setResponse(data);
-  //     } else {
-  //       setError(data.message || 'Something went wrong');
-  //     }
-  //   } catch (e) {
-  //     setError(e.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -49,87 +17,121 @@ function HomeSearch() {
     setError(null);
 
     try {
-        console.log("Parsing user input");
-        const preferences = parsePreferences(userPrompt);
-        console.log("Parsed preferences:", preferences);
+      console.log("Parsing user input");
+      const preferences = parsePreferences(userPrompt);
+      console.log("Parsed preferences:", preferences);
 
-        if (!preferences) {
-            throw new Error('Could not parse input. Please describe your preferences clearly.');
-        }
+      if (!preferences) {
+        throw new Error('Could not parse input. Please describe your preferences clearly.');
+      }
 
-        const url = "https://bug-free-train-r4pxjxgx5vp254xp-3001.app.github.dev/api/analyze_apartments";
-        console.log("Preparing request to:", url);
+      const url = "https://bug-free-train-r4pxjxgx5vp254xp-3001.app.github.dev/api/analyze_apartments";
+      console.log("Preparing request to:", url);
 
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(preferences)
-        };
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ preferences })
+      };
 
-        console.log("Request options:", requestOptions);
+      console.log("Request options:", requestOptions);
 
-        console.log("Sending request...");
-        const response = await fetch(url, requestOptions);
+      console.log("Sending request...");
+      const response = await fetch(url, requestOptions);
 
-        console.log("Response received. Status:", response.status);
-        console.log("Response status text:", response.statusText);
-        console.log("Response headers:", JSON.stringify([...response.headers]));
+      console.log("Response received. Status:", response.status);
+      console.log("Response status text:", response.statusText);
+      console.log("Response headers:", JSON.stringify([...response.headers]));
 
-        const contentType = response.headers.get("content-type");
-        console.log("Response content-type:", contentType);
+      const contentType = response.headers.get("content-type");
+      console.log("Response content-type:", contentType);
 
-        let responseBody;
-        if (contentType && contentType.includes("application/json")) {
-            responseBody = await response.json();
-            console.log("Response JSON body:", responseBody);
-        } else {
-            responseBody = await response.text();
-            console.log("Response text body:", responseBody);
-        }
+      let responseBody;
+      if (contentType && contentType.includes("application/json")) {
+        responseBody = await response.json();
+        console.log("Response JSON body:", responseBody);
+      } else {
+        responseBody = await response.text();
+        console.log("Response text body:", responseBody);
+      }
 
-        if (!response.ok) {
-            console.error(`HTTP error! status: ${response.status}, response text: ${responseBody}`);
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      if (!response.ok) {
+        console.error(`HTTP error! status: ${response.status}, response text: ${responseBody}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        console.log("Setting response data...");
-        setResponse(responseBody);
+      console.log("Setting response data...");
+      setResponse(responseBody);
     } catch (error) {
-        console.error("Error caught in handleSubmit:", {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        setError(error.message);
+      console.error("Error caught in handleSubmit:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      setError(error.message);
     } finally {
-        console.log("Finalizing handleSubmit");
-        setLoading(false);
+      console.log("Finalizing handleSubmit");
+      setLoading(false);
     }
-};
+  };
 
   const parsePreferences = (input) => {
     const preferences = {};
-    const cityMatch = input.match(/in (\w+ ?\w*)/i);
-    const bedroomsMatch = input.match(/(\d+) bedroom/i);
-    const bathroomsMatch = input.match(/(\d+) bathroom/i);
-
-    if (cityMatch) {
-      preferences.location = cityMatch[1];
+    const locationMatch = input.match(/in (\w+(?:,?\s*\w+)*)/i);
+    const homeTypeMatch = input.match(/(apartment|house|condo|townhouse)/i);
+    const bedroomsMatch = input.match(/(\d+)\s*bedrooms?/i);
+    const bathroomsMatch = input.match(/(\d+)\s*bathrooms?/i);
+    const priceMatch = input.match(/(\d{1,3}(?:,\d{3})*)\s*to\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
+    const lessThanPriceMatch = input.match(/less\s*than\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
+    const moreThanPriceMatch = input.match(/more\s*than\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
+  
+    // Updated square feet matching
+    const squareFeetMatch = input.match(/(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
+    const lessThanSqftMatch = input.match(/less\s*than\s*(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
+    const moreThanSqftMatch = input.match(/more\s*than\s*(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
+  
+    if (locationMatch) preferences.location = locationMatch[1];
+    if (homeTypeMatch) preferences.home_type = homeTypeMatch[1].charAt(0).toUpperCase() + homeTypeMatch[1].slice(1);
+    if (bedroomsMatch) preferences.bedrooms = parseInt(bedroomsMatch[1], 10);
+    if (bathroomsMatch) preferences.bathrooms = parseInt(bathroomsMatch[1], 10);
+  
+    // Handle price preferences
+    if (priceMatch) {
+      preferences.min_price = parseInt(priceMatch[1].replace(/,/g, ''), 10);
+      preferences.max_price = parseInt(priceMatch[2].replace(/,/g, ''), 10);
+    } else if (lessThanPriceMatch) {
+      preferences.max_price = parseInt(lessThanPriceMatch[1].replace(/,/g, ''), 10);
+    } else if (moreThanPriceMatch) {
+      preferences.min_price = parseInt(moreThanPriceMatch[1].replace(/,/g, ''), 10);
+    } else if (input.includes('less') || input.includes('under') || input.includes('at most')) {
+      preferences.max_price = parseInt(input.match(/(\d{1,3}(?:,\d{3})*)/)[1].replace(/,/g, ''), 10);
+    } else if (input.includes('more') || input.includes('over') || input.includes('at least')) {
+      preferences.min_price = parseInt(input.match(/(\d{1,3}(?:,\d{3})*)/)[1].replace(/,/g, ''), 10);
     }
-    if (bedroomsMatch) {
-      preferences.bedrooms = bedroomsMatch[1];
+  
+    // Handle square footage preferences
+    if (lessThanSqftMatch) {
+      preferences.max_sqft = parseInt(lessThanSqftMatch[1], 10);
+    } else if (moreThanSqftMatch) {
+      preferences.min_sqft = parseInt(moreThanSqftMatch[1], 10);
+    } else if (squareFeetMatch) {
+      const sqft = parseInt(squareFeetMatch[1], 10);
+      if (input.includes('less') || input.includes('under') || input.includes('at most')) {
+        preferences.max_sqft = sqft;
+      } else if (input.includes('more') || input.includes('over') || input.includes('at least')) {
+        preferences.min_sqft = sqft;
+      } else {
+        // If no qualifier is provided, set both min and max to the same value
+        preferences.min_sqft = sqft;
+        preferences.max_sqft = sqft;
+      }
     }
-    if (bathroomsMatch) {
-      preferences.bathrooms = bathroomsMatch[1];
-    }
-
-    if (!preferences.location && !preferences.bedrooms && !preferences.bathrooms) {
-      return null;
-    }
-
-    return preferences;
+  
+    preferences.sort = "Newest";
+  
+    return Object.keys(preferences).length > 0 ? preferences : null;
   };
 
   return (
@@ -143,9 +145,10 @@ function HomeSearch() {
                 className="form-control"
                 value={userPrompt}
                 onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Describe your preferences (e.g., I want a 3 bedroom in San Diego with 2 bathrooms)"
+                placeholder="Describe your preferences (e.g., I want an apartment in San Diego)"
                 rows="4"
                 required
+                disabled={loading}
               />
             </div>
             <div className="d-grid">
@@ -170,9 +173,7 @@ function HomeSearch() {
                 <h3 className="h5">Apartments:</h3>
                 {response.apartments.map((apartment, index) => (
                   <div key={index} className="mb-3">
-                    <h4 className="h6">
-                      {apartment.address.line}, {apartment.address.city}, {apartment.address.state}
-                    </h4>
+                    <h4 className="h6">{apartment.address}</h4>
                     <p>
                       <strong>Price:</strong> ${apartment.price}
                     </p>
@@ -180,9 +181,12 @@ function HomeSearch() {
                       <strong>Bedrooms:</strong> {apartment.bedrooms}, <strong>Bathrooms:</strong> {apartment.bathrooms}
                     </p>
                     <p>
-                      <strong>Square Feet:</strong> {apartment.square_feet}
+                      <strong>Living Area:</strong> {apartment.living_area} sqft
                     </p>
-                    {apartment.photo_url && <img src={apartment.photo_url} alt="Apartment" />}
+                    <p>
+                      <strong>Home Type:</strong> {apartment.home_type}
+                    </p>
+                    {apartment.image_url && <img src={apartment.image_url} alt="Apartment" className="img-fluid mb-2" />}
                     <hr />
                   </div>
                 ))}
@@ -194,7 +198,6 @@ function HomeSearch() {
     </div>
   );
 }
-
 export default HomeSearch;
 
 
@@ -289,3 +292,43 @@ export default HomeSearch;
 // }
 
 // export default HomeSearch
+
+
+
+/////////\
+
+
+
+// const handleSubmit = async (event) => {
+//   event.preventDefault();
+//   setLoading(true);
+//   setError(null);
+
+//   try {
+//     const preferences = parsePreferences(userPrompt);
+//     if (!preferences) {
+//       throw new Error('Could not parse input. Please describe your preferences clearly.');
+//     }
+
+//     const response = await fetch("https://bug-free-train-r4pxjgx5vp254xp-3001.app.github.dev/api/analyze_apartments", {
+//       method: "POST",
+//       body: JSON.stringify(preferences),
+//       headers: {
+//         "Content-type": "application/json"
+//       }
+//     });
+
+//     const data = await response.json();
+//     console.log("Received response:", data);
+
+//     if (response.ok) {
+//       setResponse(data);
+//     } else {
+//       setError(data.message || 'Something went wrong');
+//     }
+//   } catch (e) {
+//     setError(e.message);
+//   } finally {
+//     setLoading(false);
+//   }
+// };
