@@ -2,9 +2,10 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, Categories, Listings
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import requests
 
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
@@ -13,8 +14,6 @@ import hashlib
 from werkzeug.security import generate_password_hash
 
 # UPDATED
-
-
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
@@ -108,26 +107,84 @@ def create_user():
 #----------------------------------------JP-----------------------------------------
 
 #route for Categories
-@api.route('/categories')
+@api.route('/categories', methods=['GET'])
+# @jwt_required()
 def get_categories():
-    # Replace with your data logic
-    category = [
-        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
-        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
-        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
-    ]
-    return jsonify(category)
+    all_categories = list(map(lambda x: x.serialize(), Categories.query.all()))
+    return jsonify(all_categories)
 
 #route for createCategory
 @api.route('/create_category', methods=['POST'])
+# @jwt_required()
 def create_category():
     data = request.get_json()
+    uid = 1
+    # get_jwt_identity()
     category_name = data.get('name')
 
     # Check if category_name is provided and not empty
     if category_name:
         # Add the category to the list (simulating storage)
-        category.append(category_name)
+        category = Categories(uid = uid, categoryName = category_name)
+        db.session.add(category)
+        db.session.commit()
         return jsonify({'message': 'Category created successfully'}), 200
     else:
         return jsonify({'error': 'Category name is required'}), 400
+    
+# creating new entry to database from chatgpt
+@api.route('/add_listing', methods=['POST'])
+def add_listing():
+    data = request.json  # Assuming data is sent as JSON
+    
+    # Example of adding a listing
+    new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
+    db.session.add(new_listing)
+    db.session.commit()
+    
+    return jsonify({'message': 'Listing added successfully'}), 201
+
+@api.route("/get_listing_by_cat", methods=["GET"])
+def get_listings_by_cat():
+    data = request.json
+    all_listings = list(map(lambda x: x.serialize(), Listings.query.all()))
+    cat_name = data['category']
+    # query category table by name to get the id to then get the correct listings
+    # filters the listings by catogory and return only those
+
+#---------------------------------Secret Valerie Code-------------------------------
+
+@api.route('/user', methods=['GET'])
+@jwt_required()
+def get_user():
+    id = get_jwt_identity()
+    user = User.query.filter_by(id=id).first()
+
+    if user is not None:
+        return jsonify(user.serialize()), 200
+
+    return jsonify({"message": "Uh-oh"}), 400
+
+@api.route('/room', methods=['POST'])
+def add_room():
+    request_body = request.get_json(force=True)
+    name = request_body.get("name")
+    pic_url = request_body.get("pic_url")
+    objects = request_body.get("objects")
+    meta_tags = request_body.get("meta_tag")
+
+    return jsonify(request_body), 200
+
+@api.route('/rooms', methods=['GET'])
+def get_rooms():
+    rooms_list = Room.query
+    if "name" in request.args:
+        rooms_list = rooms_list.filter(Room.name.ilike(f"%{request.args['name']}%"))
+    rooms_list = rooms_list.all()
+    all_rooms = list(map(lambda room: room.serialize(), rooms_list))
+    return jsonify(all_rooms), 200
+
+@api.route('/objects/<int:id>', methods=['GET'])
+def get_object(id):
+    r_object = Object.query.filter_by(id=id).first()
+    return jsonify(r_object.serialize()), 200

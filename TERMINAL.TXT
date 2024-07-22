@@ -6,6 +6,7 @@ pipenv install flask
 pipenv install flask-jwt-extended
 pip install requests
 
+pipenv run reset_db
 pipenv run migrate
 pipenv run upgrade
 pipenv run start
@@ -13,5 +14,6 @@ pipenv run start
 
 FRONT END
 npm install
+npm install react-slick slick-carousel
 npm i react-google-maps
 npm run start

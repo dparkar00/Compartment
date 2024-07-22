@@ -44,7 +44,7 @@ class Categories(db.Model):
             "uid": self.uid,
             "categoryName": self.categoryName,
         }
-    
+
 class Listings(db.Model):
     __tablename__ = "Listings"
     id = db.Column(db.Integer, primary_key=True)

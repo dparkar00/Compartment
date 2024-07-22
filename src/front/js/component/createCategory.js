@@ -17,7 +17,7 @@ export const CreateCategory = () => {
             if (response.ok) {
                 // Category created successfully
                 console.log('Category created successfully');
-                // Optionally, reset the input field
+                // Reset the input field
                 setNewCategoryName('');
             } else {
                 // Handle error response from server
@@ -46,7 +46,7 @@ export const CreateCategory = () => {
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                            <div className="modal-body">
+                            <div className="modal-body">asd
                                 <div className="mt-4">
                                     <h5>Create New Category</h5>
                                     <div className="input-group mb-3">
@@ -75,3 +75,62 @@ export const CreateCategory = () => {
         </div>
     );
 }
+
+
+
+// front end for creating new entry in database
+// import React, { useState } from 'react';
+
+// const AddListingForm = () => {
+//     const [listingName, setListingName] = useState('');
+//     const [cid, setCid] = useState('');
+
+//     const handleSubmit = async (event) => {
+//         event.preventDefault();
+
+//         try {
+//             const response = await fetch('http://localhost:5000/add_listing', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     cid: cid,
+//                     listingName: listingName
+//                 }),
+//             });
+
+//             if (!response.ok) {
+//                 throw new Error('Failed to add listing');
+//             }
+
+//             const responseData = await response.json();
+//             console.log(responseData.message);  // Success message
+
+//         } catch (error) {
+//             console.error('Error adding listing:', error);
+//         }
+//     };
+
+//     return (
+//         <form onSubmit={handleSubmit}>
+//             <input
+//                 type="text"
+//                 value={listingName}
+//                 onChange={(e) => setListingName(e.target.value)}
+//                 placeholder="Listing Name"
+//                 required
+//             />
+//             <input
+//                 type="number"
+//                 value={cid}
+//                 onChange={(e) => setCid(e.target.value)}
+//                 placeholder="Category ID"
+//                 required
+//             />
+//             <button type="submit">Add Listing</button>
+//         </form>
+//     );
+// };
+
+// export default AddListingForm;
