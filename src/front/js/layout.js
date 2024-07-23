@@ -11,7 +11,7 @@ import injectContext from "./store/appContext";
 import { Navbar } from "./component/navbar";
 import { Footer } from "./component/footer";
 
-import { SearchPage } from "./pages/searchPage";
+import SearchPage from "./component/searchPage";
 
 import { Category } from "./pages/categories";
 import { CategoryFavorites } from "./pages/categoryFavorites";

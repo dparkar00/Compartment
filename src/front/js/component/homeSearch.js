@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 
-
-function HomeSearch() {
+function HomeSearch({ onSearchResults }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [response, setResponse] = useState(null);
   const [userPrompt, setUserPrompt] = useState('');
-
-
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -64,6 +61,7 @@ function HomeSearch() {
 
       console.log("Setting response data...");
       setResponse(responseBody);
+      onSearchResults(responseBody); // Pass the results up to the parent
     } catch (error) {
       console.error("Error caught in handleSubmit:", {
         name: error.name,
@@ -135,71 +133,42 @@ function HomeSearch() {
   };
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <h1 className="mb-4">Home Search</h1>
-          <form onSubmit={handleSubmit} className="mb-4">
-            <div className="mb-3">
-              <textarea
-                className="form-control"
-                value={userPrompt}
-                onChange={(e) => setUserPrompt(e.target.value)}
-                placeholder="Describe your preferences (e.g., I want an apartment in San Diego)"
-                rows="4"
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="d-grid">
-              <button type="submit" className="btn btn-primary" disabled={loading}>
-                {loading ? 'Searching...' : 'Search Homes'}
-              </button>
-            </div>
-          </form>
-          {error && (
-            <div className="alert alert-danger" role="alert">
-              {error}
-            </div>
-          )}
-          {response && (
-            <div className="card">
-              <div className="card-body">
-                <h2 className="card-title">Search Results:</h2>
-                <div className="mb-4">
-                  <h3 className="h5">Analysis:</h3>
-                  <p>{response.analysis}</p>
-                </div>
-                <h3 className="h5">Apartments:</h3>
-                {response.apartments.map((apartment, index) => (
-                  <div key={index} className="mb-3">
-                    <h4 className="h6">{apartment.address}</h4>
-                    <p>
-                      <strong>Price:</strong> ${apartment.price}
-                    </p>
-                    <p>
-                      <strong>Bedrooms:</strong> {apartment.bedrooms}, <strong>Bathrooms:</strong> {apartment.bathrooms}
-                    </p>
-                    <p>
-                      <strong>Living Area:</strong> {apartment.living_area} sqft
-                    </p>
-                    <p>
-                      <strong>Home Type:</strong> {apartment.home_type}
-                    </p>
-                    {apartment.image_url && <img src={apartment.image_url} alt="Apartment" className="img-fluid mb-2" />}
-                    <hr />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+    <div>
+      <h2>Home Search</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <textarea
+            className="form-control"
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
+            placeholder="Describe your preferences (e.g., I want an apartment in San Diego)"
+            rows="4"
+            required
+            disabled={loading}
+          />
         </div>
-      </div>
+        <div className="d-grid">
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Searching...' : 'Search Homes'}
+          </button>
+        </div>
+      </form>
+      {error && (
+        <div className="alert alert-danger mt-3" role="alert">
+          {error}
+        </div>
+      )}
+      {response && (
+        <div className="mt-3">
+          <h3>Analysis:</h3>
+          <p>{response.analysis}</p>
+        </div>
+      )}
     </div>
   );
 }
-export default HomeSearch;
 
+export default HomeSearch;
 
 
 

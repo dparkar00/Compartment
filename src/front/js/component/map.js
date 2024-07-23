@@ -2,102 +2,130 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { Context } from '../store/appContext';
+import { PropertyListing } from './propertyListing';
+import MapSearchBar from './mapSearchBar';
 
 const containerStyle = {
   width: '100%',
   height: '100vh'
 };
 
-const center = {
+const defaultCenter = {
   lat: 37.7749,
   lng: -122.4194
 };
 
-export const MapComponent = () => {
-  const { actions } = useContext(Context); // Ensure you have access to actions from context
+  const MapComponent = () => {
+  const { actions } = useContext(Context);
   const [apartments, setApartments] = useState([]);
   const [selectedApartment, setSelectedApartment] = useState(null);
-  const [location, setLocation] = useState('San Francisco, CA'); // Default location
-  const [beds, setBeds] = useState(null);
-  const [baths,setBaths] =useState(null);
+  const [center, setCenter] = useState(defaultCenter);
   const [error, setError] = useState(null);
+  const [propertyCategories, setPropertyCategories] = useState(['Favorites', 'To Visit']);
+
+  async function fetchCoordinates(address) {
+    const response = await fetch(process.env.BACKEND_URL + `/geocode?address=${encodeURIComponent(address)}`);
+    const data = await response.json();
+    return data;
+  }
+
+  const fetchApartments = async (filters = {}) => {
+    try {
+      const params = new URLSearchParams(filters);
+      const response = await fetch(process.env.BACKEND_URL + `api/apartments?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setApartments(data.data.results);
+    } catch (error) {
+      setError(error);
+      console.error('Error fetching apartments:', error);
+    }
+  };
+
+  const updateApartmentCoordinates = async (apartment) => {
+    const address = `${apartment.location.address.line} ${apartment.location.address.city} ${apartment.location.address.state} ${apartment.location.address.postal_code} ${apartment.location.address.country}`;
+    const coordinates = await fetchCoordinates(address);
+    if (coordinates && coordinates.latitude && coordinates.longitude) {
+      apartment.location.address.coordinate = {
+        lat: coordinates.latitude,
+        lon: coordinates.longitude,
+      };
+    }
+  };
 
   useEffect(() => {
-    async function fetchApartments() {
-      try {
-        const response = await fetch(process.env.BACKEND_URL+'api/apartments');
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const data = await response.json();
-          
-          setApartments(data.data.results); 
+    const fetchAndSetApartments = async () => {
+      await fetchApartments();
+    };
+    fetchAndSetApartments();
+  }, []);
 
-          for (let i = 0; i < apartments.length; i++) {
-
-            if(apartments[i].description.beds == null){
-              setBeds(apartments[i].description.beds_max);
-            }else {
-              setBeds(apartments[i].description.beds)
-            }
-
-            if(apartments[i].description.baths == null){
-              setBaths(apartments[i].description.baths_max);
-            }else{
-              setBaths(apartments[i].description.baths);
-            }
-            
+  useEffect(() => {
+    const fetchCoordinatesForApartments = async () => {
+      const updatedApartments = await Promise.all(
+        apartments.map(async (apartment) => {
+          if (!apartment.location.address.coordinate) {
+            await updateApartmentCoordinates(apartment);
           }
+          return apartment;
+        })
+      );
+      setApartments(updatedApartments);
+    };
 
-
-        } 
-      } catch (error) {
-        setError(error);
-        console.error('Error fetching apartments:', error);
-      }
+    if (apartments.length > 0) {
+      fetchCoordinatesForApartments();
     }
+  }, [apartments]);
 
-   
-    fetchApartments();
-}, []);
+  const handleSaveToCategory = (property, category) => {
+    console.log(`Saving property to category: ${category}`);
+  };
 
-  
+  const handleAddCategory = (newCategory) => {
+    setPropertyCategories([...propertyCategories, newCategory]);
+  };
 
-
-
+  const handleSearch = (filters) => {
+    fetchApartments(filters);
+  };
 
   return (
-    <LoadScript googleMapsApiKey="AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8">
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={13}
-      >
-        {apartments && apartments.map && apartments.map((apartment, idx) => (
-          <Marker
-            key={idx}
-            position={{ lat: apartment.location.address.coordinate.lat, lng: apartment.location.address.coordinate.lon }}
-            onClick={() => setSelectedApartment(apartment)}
-          />
-        ))}
-        {selectedApartment && (
-          <InfoWindow
-            position={{ lat: selectedApartment.location.address.coordinate.lat, lng: selectedApartment.location.address.coordinate.lon }}
-            onCloseClick={() => setSelectedApartment(null)}
-          >
-            <div>
-              <h3>{selectedApartment.location.address.line} {selectedApartment.location.address.postal_code} , {selectedApartment.location.address.state_code} </h3>
-             
-              
-              <p>{selectedApartment.list_price}</p>
-              <p>{selectedApartment.description.beds || selectedApartment.description.beds_max } beds, {selectedApartment.description.baths || selectedApartment.description.baths_max} baths</p>
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-    </LoadScript>
+    <>
+      <MapSearchBar onSearch={handleSearch} />
+      <LoadScript googleMapsApiKey="AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8">
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={13}
+        >
+          {apartments.map((apartment, idx) => (
+            apartment.location.address.coordinate && (
+              <Marker
+                key={idx}
+                position={{ lat: apartment.location.address.coordinate.lat, lng: apartment.location.address.coordinate.lon }}
+                onClick={() => setSelectedApartment(apartment)}
+              />
+            )
+          ))}
+          {selectedApartment && (
+            <InfoWindow
+              position={{ lat: selectedApartment.location.address.coordinate.lat, lng: selectedApartment.location.address.coordinate.lon }}
+              onCloseClick={() => setSelectedApartment(null)}
+            >
+              <PropertyListing
+                property={selectedApartment}
+                categories={propertyCategories}
+                onSaveToCategory={handleSaveToCategory}
+                onAddCategory={handleAddCategory}
+              />
+            </InfoWindow>
+          )}
+        </GoogleMap>
+      </LoadScript>
+    </>
   );
 };
 
