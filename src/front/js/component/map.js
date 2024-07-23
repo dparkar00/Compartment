@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
+import { GoogleMap, LoadScript, MarkerF, InfoWindowF } from '@react-google-maps/api';
 import { Context } from '../store/appContext';
 import { PropertyListing } from './propertyListing';
 import MapSearchBar from './mapSearchbar';
@@ -21,21 +21,25 @@ export const MapComponent = () => {
   const [center, setCenter] = useState(defaultCenter);
   const [error, setError] = useState(null);
   const [propertyCategories, setPropertyCategories] = useState(['Favorites', 'To Visit']);
+  const markersRef = useRef(new Map()); // Use useRef to store markers
+  const mapRef = useRef(null); // Reference to the map instance
 
-  async function fetchCoordinates(address) {
-    const response = await fetch(process.env.BACKEND_URL + `api/geocode?address=${encodeURIComponent(address)}`);
-     // Check if response is OK
-     if (!response.ok) {
-      const errorText = await response.text(); // Read the error response as text
-      throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
-  }
+  const fetchCoordinates = useCallback(async (address) => {
+    try {
+      const response = await fetch(process.env.BACKEND_URL + `api/geocode?address=${encodeURIComponent(address)}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching coordinates:', error);
+      throw error;
+    }
+  }, []);
 
-  // Parse JSON response
-  const data = await response.json();
-  return data;
-  }
-
-  const fetchApartments = async (filters = {}) => {
+  const fetchApartments = useCallback(async (filters = {}) => {
     try {
       const params = new URLSearchParams(filters);
       const response = await fetch(process.env.BACKEND_URL + `api/apartments?${params.toString()}`);
@@ -43,48 +47,29 @@ export const MapComponent = () => {
         throw new Error(`Network response was not ok: ${response.statusText}`);
       }
       const data = await response.json();
-      setApartments(data.data.results);
+      const updatedApartments = await Promise.all(data.data.results.map(async (apartment) => {
+        if (!apartment.location.address.coordinate) {
+          const address = `${apartment.location.address.line} ${apartment.location.address.city} ${apartment.location.address.state} ${apartment.location.address.postal_code} ${apartment.location.address.country}`;
+          const coordinates = await fetchCoordinates(address);
+          if (coordinates && coordinates.latitude && coordinates.longitude) {
+            apartment.location.address.coordinate = {
+              lat: coordinates.latitude,
+              lon: coordinates.longitude,
+            };
+          }
+        }
+        return apartment;
+      }));
+      setApartments(updatedApartments);
     } catch (error) {
       setError(error);
       console.error('Error fetching apartments:', error);
     }
-  };
-
-  const updateApartmentCoordinates = async (apartment) => {
-    const address = `${apartment.location.address.line} ${apartment.location.address.city} ${apartment.location.address.state} ${apartment.location.address.postal_code} ${apartment.location.address.country}`;
-    const coordinates = await fetchCoordinates(address);
-    if (coordinates && coordinates.latitude && coordinates.longitude) {
-      apartment.location.address.coordinate = {
-        lat: coordinates.latitude,
-        lon: coordinates.longitude,
-      };
-    }
-  };
+  }, [fetchCoordinates]);
 
   useEffect(() => {
-    const fetchAndSetApartments = async () => {
-      await fetchApartments();
-    };
-    fetchAndSetApartments();
-  }, []);
-
-  useEffect(() => {
-    const fetchCoordinatesForApartments = async () => {
-      const updatedApartments = await Promise.all(
-        apartments.map(async (apartment) => {
-          if (!apartment.location.address.coordinate) {
-            await updateApartmentCoordinates(apartment);
-          }
-          return apartment;
-        })
-      );
-      setApartments(updatedApartments);
-    };
-
-    if (apartments.length > 0) {
-      fetchCoordinatesForApartments();
-    }
-  }, [apartments]);
+    fetchApartments();
+  }, [fetchApartments]);
 
   const handleSaveToCategory = (property, category) => {
     console.log(`Saving property to category: ${category}`);
@@ -94,9 +79,55 @@ export const MapComponent = () => {
     setPropertyCategories([...propertyCategories, newCategory]);
   };
 
-  const handleSearch = (filters) => {
-    fetchApartments(filters);
+  const handleSearch = async (filters) => {
+    await fetchApartments(filters);
+    if (filters.location) {
+      const coordinates = await fetchCoordinates(filters.location);
+      if (coordinates && coordinates.latitude && coordinates.longitude) {
+        setCenter({ lat: coordinates.latitude, lng: coordinates.longitude });
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: coordinates.latitude, lng: coordinates.longitude });
+        }
+      }
+    }
   };
+
+  const addOrUpdateMarker = (id, position) => {
+    if (markersRef.current.has(id)) {
+      markersRef.current.get(id).setPosition(position);
+    } else {
+      const newMarker = new google.maps.Marker({
+        position: position,
+        map: mapRef.current
+      });
+      markersRef.current.set(id, newMarker);
+    }
+  };
+
+  useEffect(() => {
+    if (mapRef.current) {
+      apartments.forEach(apartment => {
+        if (apartment.location.address.coordinate) {
+          addOrUpdateMarker(apartment.id, {
+            lat: apartment.location.address.coordinate.lat,
+            lng: apartment.location.address.coordinate.lon
+          });
+        }
+      });
+
+      // Adjust the map to fit all markers
+      const bounds = new window.google.maps.LatLngBounds();
+      apartments.forEach(apartment => {
+        if (apartment.location.address.coordinate) {
+          bounds.extend({
+            lat: apartment.location.address.coordinate.lat,
+            lng: apartment.location.address.coordinate.lon
+          });
+        }
+      });
+      mapRef.current.fitBounds(bounds);
+    }
+  }, [apartments]);
 
   return (
     <>
@@ -106,19 +137,36 @@ export const MapComponent = () => {
           mapContainerStyle={containerStyle}
           center={center}
           zoom={13}
+          onLoad={mapInstance => {
+            mapRef.current = mapInstance;
+            apartments.forEach(apartment => {
+              if (apartment.location.address.coordinate) {
+                addOrUpdateMarker(apartment.id, {
+                  lat: apartment.location.address.coordinate.lat,
+                  lng: apartment.location.address.coordinate.lon
+                });
+              }
+            });
+          }}
         >
-          {apartments.map((apartment, idx) => (
+          {apartments.map(apartment => (
             apartment.location.address.coordinate && (
-              <Marker
-                key={idx}
-                position={{ lat: apartment.location.address.coordinate.lat, lng: apartment.location.address.coordinate.lon }}
+              <MarkerF
+                key={apartment.id}
+                position={{
+                  lat: apartment.location.address.coordinate.lat,
+                  lng: apartment.location.address.coordinate.lon
+                }}
                 onClick={() => setSelectedApartment(apartment)}
               />
             )
           ))}
           {selectedApartment && (
-            <InfoWindow
-              position={{ lat: selectedApartment.location.address.coordinate.lat, lng: selectedApartment.location.address.coordinate.lon }}
+            <InfoWindowF
+              position={{
+                lat: selectedApartment.location.address.coordinate.lat,
+                lng: selectedApartment.location.address.coordinate.lon
+              }}
               onCloseClick={() => setSelectedApartment(null)}
             >
               <PropertyListing
@@ -127,7 +175,7 @@ export const MapComponent = () => {
                 onSaveToCategory={handleSaveToCategory}
                 onAddCategory={handleAddCategory}
               />
-            </InfoWindow>
+            </InfoWindowF>
           )}
         </GoogleMap>
       </LoadScript>
