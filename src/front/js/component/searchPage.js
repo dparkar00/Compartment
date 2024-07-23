@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import MapComponent from "./map";
 import HomeSearch from "./homeSearch";
-import ApartmentList from "./apartmentlist";
+import ApartmentList from "./apartmentList";
 
 export const SearchPage = () => {
   const [mapData, setMapData] = useState([]);
@@ -11,14 +11,16 @@ export const SearchPage = () => {
     setSearchResults(results);
     if (results && results.apartments) {
       const newMapData = results.apartments.map(apt => ({
-        latitude: apt.location?.address?.coordinate?.lat || 0,
-        longitude: apt.location?.address?.coordinate?.lon || 0,
-        address: `${apt.location?.address?.line || ''}, ${apt.location?.address?.city || ''}, ${apt.location?.address?.state_code || ''} ${apt.location?.address?.postal_code || ''}`.trim(),
-        price: apt.list_price || 0,
-        bedrooms: apt.description?.beds || apt.description?.beds_max || 'N/A',
-        bathrooms: apt.description?.baths || apt.description?.baths_max || 'N/A',
-        living_area: apt.description?.sqft || apt.description?.sqft_max || 'N/A'
+        latitude: apt.latitude,
+        longitude: apt.longitude,
+        address: apt.address,
+        price: apt.price,
+        bedrooms: apt.bedrooms,
+        bathrooms: apt.bathrooms,
+        living_area: apt.livingArea,
+        image_url: apt.image_url
       }));
+      console.log("Map Data:", newMapData); // Log the map data
       setMapData(newMapData);
     }
   };

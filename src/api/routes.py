@@ -98,6 +98,8 @@ def process_zillow_data(data):
             'transitScore': listing.get('transitScore'),
             'bikeScore': listing.get('bikeScore'),
             'crime_rate': listing.get('crimeRate'),
+            'latitude': listing.get('latitude'),  # Add this line
+            'longitude': listing.get('longitude'),
             'nearby_amenities': listing.get('nearbyAmenities', []),
         }
         processed_listings.append(processed_listing)

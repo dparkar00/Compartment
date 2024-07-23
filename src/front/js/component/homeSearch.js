@@ -3,78 +3,81 @@ import React, { useState } from 'react';
 function HomeSearch({ onSearchResults }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [response, setResponse] = useState(null);
   const [userPrompt, setUserPrompt] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log('Starting handleSubmit');
-
+  
     setLoading(true);
     setError(null);
-
+  
     try {
-      console.log("Parsing user input");
       const preferences = parsePreferences(userPrompt);
       console.log("Parsed preferences:", preferences);
-
+  
       if (!preferences) {
         throw new Error('Could not parse input. Please describe your preferences clearly.');
       }
-
+  
       const url = "https://bug-free-train-r4pxjxgx5vp254xp-3001.app.github.dev/api/analyze_apartments";
-      console.log("Preparing request to:", url);
-
-      const requestOptions = {
+      
+      const response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preferences })
-      };
-
-      console.log("Request options:", requestOptions);
-
-      console.log("Sending request...");
-      const response = await fetch(url, requestOptions);
-
-      console.log("Response received. Status:", response.status);
-      console.log("Response status text:", response.statusText);
-      console.log("Response headers:", JSON.stringify([...response.headers]));
-
-      const contentType = response.headers.get("content-type");
-      console.log("Response content-type:", contentType);
-
-      let responseBody;
-      if (contentType && contentType.includes("application/json")) {
-        responseBody = await response.json();
-        console.log("Response JSON body:", responseBody);
-      } else {
-        responseBody = await response.text();
-        console.log("Response text body:", responseBody);
-      }
-
+      });
+  
       if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}, response text: ${responseBody}`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      console.log("Setting response data...");
-      setResponse(responseBody);
-      onSearchResults(responseBody); // Pass the results up to the parent
+  
+      const responseBody = await response.json();
+      console.log("Response received:", responseBody); // Log the entire response
+  
+      if (responseBody.apartments && responseBody.apartments.length > 0) {
+        const processedApartments = processApartments(responseBody.apartments);
+        onSearchResults({ ...responseBody, apartments: processedApartments });
+      } else {
+        console.log("No apartments found in the response");
+        onSearchResults(responseBody);
+      }
+  
     } catch (error) {
-      console.error("Error caught in handleSubmit:", {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
+      console.error("Error in handleSubmit:", error);
       setError(error.message);
     } finally {
-      console.log("Finalizing handleSubmit");
       setLoading(false);
     }
   };
 
+  const processApartments = (apartments) => {
+    return apartments.map(apt => {
+      // Check if latitude and longitude are directly available
+      let lat = apt.latitude;
+      let lng = apt.longitude;
+  
+      // If not, check if they're nested under location.address.coordinate
+      if (!lat && !lng && apt.location && apt.location.address && apt.location.address.coordinate) {
+        lat = apt.location.address.coordinate.lat;
+        lng = apt.location.address.coordinate.lon;
+      }
+  
+      return {
+        id: apt.zpid,
+        latitude: lat,
+        longitude: lng,
+        address: apt.address,
+        price: apt.price,
+        bedrooms: apt.bedrooms,
+        bathrooms: apt.bathrooms,
+        livingArea: apt.living_area,
+        imageUrl: apt.image_url || apt.imgSrc, // Include the image URL
+        // Include any other relevant properties
+      };
+    }).filter(apt => apt.latitude && apt.longitude); // Only include apartments with valid coordinates
+  };
+  
   const parsePreferences = (input) => {
     const preferences = {};
     const locationMatch = input.match(/in (\w+(?:,?\s*\w+)*)/i);
@@ -156,12 +159,6 @@ function HomeSearch({ onSearchResults }) {
       {error && (
         <div className="alert alert-danger mt-3" role="alert">
           {error}
-        </div>
-      )}
-      {response && (
-        <div className="mt-3">
-          <h3>Analysis:</h3>
-          <p>{response.analysis}</p>
         </div>
       )}
     </div>
