@@ -32,12 +32,58 @@ def handle_hello():
     return jsonify(response_body), 200
 
 
+api_key= 'AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8'
+def get_coordinates(address, api_key):
+    base_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        "address": address,
+        "key": api_key
+    }
+    response = requests.get(base_url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == 'OK' and len(data['results']) > 0:
+            location = data['results'][0]['geometry']['location']
+            return location['lat'], location['lng']
+        else:
+            raise Exception("No results found or API error")
+    else:
+        raise Exception(f"Request failed with status code {response.status_code}")
+
+@api.route('/geocode', methods=['GET'])
+def geocode():
+    address = request.args.get('address')
+    if not address:
+        return jsonify({"error": "Address parameter is required"}), 400
+
+    try:
+        latitude, longitude = get_coordinates(address, api_key)
+        return jsonify({"latitude": latitude, "longitude": longitude})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
 @api.route('/apartments', methods=['GET'])
 def get_apartments():
-    
+    location = request.args.get('location', 'San Francisco, CA')
+    beds = request.args.get('beds')
+    baths = request.args.get('baths')
+
     url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
 
-    querystring = {"location":"city:San Francisco, CA","sortBy":"newest","propertyType":"apartment"}
+    querystring = {
+        "location": f"city:{location}",
+        "sortBy": "newest",
+        "propertyType": "apartment"
+    }
+
+    if beds:
+        querystring["beds"] = beds
+    if baths:
+        querystring["baths"] = baths
 
     headers = {
         "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
@@ -46,7 +92,7 @@ def get_apartments():
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    return jsonify(data),200
+    return jsonify(data), 200
    
 
 
@@ -105,94 +151,29 @@ def create_user():
 #     else :
 #         return jsonify({"user_id": user.id, "email": user.email}), 200
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#----------------------------------------JP-----------------------------------------
+
+#route for Categories
+@api.route('/categories')
+def get_categories():
+    # Replace with your data logic
+    category = [
+        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
+        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
+        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
+    ]
+    return jsonify(category)
+
+#route for createCategory
+@api.route('/create_category', methods=['POST'])
+def create_category():
+    data = request.get_json()
+    category_name = data.get('name')
+
+    # Check if category_name is provided and not empty
+    if category_name:
+        # Add the category to the list (simulating storage)
+        category.append(category_name)
+        return jsonify({'message': 'Category created successfully'}), 200
+    else:
+        return jsonify({'error': 'Category name is required'}), 400
