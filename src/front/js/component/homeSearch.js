@@ -139,13 +139,13 @@ function HomeSearch({ onSearchResults }) {
     <div>
       <h2>Home Search</h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <textarea
-            className="form-control"
+        <div className="ai-input-container mb-3">
+          <input
+            type="text"
+            className="ai-input"
             value={userPrompt}
             onChange={(e) => setUserPrompt(e.target.value)}
             placeholder="Describe your preferences (e.g., I want an apartment in San Diego)"
-            rows="4"
             required
             disabled={loading}
           />
