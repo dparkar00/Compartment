@@ -13,6 +13,7 @@ export const Category = () => {
         const response = await fetch(process.env.BACKEND_URL + "api/categories");
         if (response.ok) {
             const data = await response.json();
+            console.log('Categories successfully gotten');
             setCategories(data);
         } else {
             console.error('Failed to fetch categories:', response.status);

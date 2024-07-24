@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Context } from '../store/appContext';
 
 export const CreateCategory = () => {
     const [newCategory, setNewCategory] = useState('');
+    const [categories, setCategories] = useState([]);
 
     const handleCreateCategory = () => {
         // Make an API call to Flask backend
@@ -27,6 +27,20 @@ export const CreateCategory = () => {
         .catch(error => {
             console.error('Error creating category:', error);
         });
+
+        fetch(process.env.BACKEND_URL + "api/categories")
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('reFetch error:', error);
+            })
     };
 
     return (
@@ -58,7 +72,7 @@ export const CreateCategory = () => {
                                             onChange={(e) => setNewCategory(e.target.value)}
                                         />
                                         <div className="input-group-append">
-                                            <button className="btn btn-primary" type="button" onClick={handleCreateCategory}>
+                                            <button className="btn btn-primary" type="button" onClick={handleCreateCategory; window.location.reload()}>
                                                 Create
                                             </button>
                                         </div>
