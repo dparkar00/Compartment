@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { Context } from '../store/appContext';
 
 export const CreateCategory = () => {
-    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategory, setNewCategory] = useState('');
 
     const handleCreateCategory = () => {
         // Make an API call to Flask backend
-        fetch('/api/create_category', {
+        fetch(process.env.BACKEND_URL + "api/create_category", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ categoryName: newCategoryName }),
+            body: JSON.stringify({ name: newCategory }),
         })
         .then(response => {
             if (response.ok) {
                 // Category created successfully
                 console.log('Category created successfully');
                 // Reset the input field
-                setNewCategoryName('');
+                setNewCategory('');
             } else {
                 // Handle error response from server
                 console.error('Failed to create category');
@@ -46,7 +46,7 @@ export const CreateCategory = () => {
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                            <div className="modal-body">asd
+                            <div className="modal-body">
                                 <div className="mt-4">
                                     <h5>Create New Category</h5>
                                     <div className="input-group mb-3">
@@ -54,8 +54,8 @@ export const CreateCategory = () => {
                                             type="text"
                                             className="form-control"
                                             placeholder="Category Name"
-                                            value={newCategoryName}
-                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            value={newCategory}
+                                            onChange={(e) => setNewCategory(e.target.value)}
                                         />
                                         <div className="input-group-append">
                                             <button className="btn btn-primary" type="button" onClick={handleCreateCategory}>

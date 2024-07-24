@@ -20,7 +20,6 @@ api = Blueprint('api', __name__)
 CORS(api)
 
 
-
 @api.route('/hello', methods=['POST', 'GET'])
 def handle_hello():
 
@@ -62,7 +61,7 @@ def create_signin():
         return jsonify(access_token = access_token)
     return jsonify(error = "Missing email or password"), 400
 
-@api.route('user', methods=['GET'])
+@api.route('/user', methods=['GET'])
 @jwt_required()
 def get_user():
     id = get_jwt_identity()
@@ -104,9 +103,9 @@ def create_user():
 #     else :
 #         return jsonify({"user_id": user.id, "email": user.email}), 200
 
-#----------------------------------------JP-----------------------------------------
+#----------------------------------------JP---------------------------------------
 
-#route for Categories
+#route for getting Categories
 @api.route('/categories', methods=['GET'])
 # @jwt_required()
 def get_categories():
@@ -120,6 +119,7 @@ def create_category():
     data = request.get_json()
     uid = 1
     # get_jwt_identity()
+
     category_name = data.get('name')
 
     # Check if category_name is provided and not empty
@@ -154,37 +154,37 @@ def get_listings_by_cat():
 
 #---------------------------------Secret Valerie Code-------------------------------
 
-@api.route('/user', methods=['GET'])
-@jwt_required()
-def get_user():
-    id = get_jwt_identity()
-    user = User.query.filter_by(id=id).first()
+# @api.route('/user', methods=['GET'])
+# @jwt_required()
+# def get_user():
+#     id = get_jwt_identity()
+#     user = User.query.filter_by(id=id).first()
 
-    if user is not None:
-        return jsonify(user.serialize()), 200
+#     if user is not None:
+#         return jsonify(user.serialize()), 200
 
-    return jsonify({"message": "Uh-oh"}), 400
+#     return jsonify({"message": "Uh-oh"}), 400
 
-@api.route('/room', methods=['POST'])
-def add_room():
-    request_body = request.get_json(force=True)
-    name = request_body.get("name")
-    pic_url = request_body.get("pic_url")
-    objects = request_body.get("objects")
-    meta_tags = request_body.get("meta_tag")
+# @api.route('/room', methods=['POST'])
+# def add_room():
+#     request_body = request.get_json(force=True)
+#     name = request_body.get("name")
+#     pic_url = request_body.get("pic_url")
+#     objects = request_body.get("objects")
+#     meta_tags = request_body.get("meta_tag")
 
-    return jsonify(request_body), 200
+#     return jsonify(request_body), 200
 
-@api.route('/rooms', methods=['GET'])
-def get_rooms():
-    rooms_list = Room.query
-    if "name" in request.args:
-        rooms_list = rooms_list.filter(Room.name.ilike(f"%{request.args['name']}%"))
-    rooms_list = rooms_list.all()
-    all_rooms = list(map(lambda room: room.serialize(), rooms_list))
-    return jsonify(all_rooms), 200
+# @api.route('/rooms', methods=['GET'])
+# def get_rooms():
+#     rooms_list = Room.query
+#     if "name" in request.args:
+#         rooms_list = rooms_list.filter(Room.name.ilike(f"%{request.args['name']}%"))
+#     rooms_list = rooms_list.all()
+#     all_rooms = list(map(lambda room: room.serialize(), rooms_list))
+#     return jsonify(all_rooms), 200
 
-@api.route('/objects/<int:id>', methods=['GET'])
-def get_object(id):
-    r_object = Object.query.filter_by(id=id).first()
-    return jsonify(r_object.serialize()), 200
+# @api.route('/objects/<int:id>', methods=['GET'])
+# def get_object(id):
+#     r_object = Object.query.filter_by(id=id).first()
+#     return jsonify(r_object.serialize()), 200

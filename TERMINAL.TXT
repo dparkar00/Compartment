@@ -6,6 +6,7 @@ pipenv install flask
 pipenv install flask-jwt-extended
 pip install requests
 
+pipenv shell
 pipenv run reset_db
 pipenv run migrate
 pipenv run upgrade

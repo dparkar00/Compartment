@@ -9,6 +9,7 @@ export const Category = () => {
     const [categories, setCategories] = useState([]);
 
     const fetchCategories = async () => {
+        
         const response = await fetch(process.env.BACKEND_URL + "api/categories");
         if (response.ok) {
             const data = await response.json();
@@ -31,6 +32,7 @@ export const Category = () => {
                         <a href={`/categories/${category.id}`}>
                             <div className="card mb-3" key={category.id}>
                                 <div className="card-body">
+                                    <h2>{category.categoryName}</h2>
                                     <img src={CatImageUrl}/>
                                 </div>
                             </div>

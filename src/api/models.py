@@ -33,10 +33,10 @@ class Categories(db.Model):
     def __repr__(self):
         return f'<Category {self.categoryName}>'
     
-    def getListings(self):
-        listings = Listings.query.filter_by(cid=self.categoryName)
-        listings = [listing.serialize() for listing in listings]
-        return listings
+    # def getListings(self):
+    #     listings = Listings.query.filter_by(cid=self.categoryName)
+    #     listings = [listing.serialize() for listing in listings]
+    #     return listings
 
     def serialize(self):
         return {
