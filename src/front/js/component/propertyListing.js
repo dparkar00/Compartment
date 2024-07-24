@@ -36,8 +36,8 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
           // Category created successfully
           console.log('Category created successfully');
           // Reset the input field
-          onAddCategory(newCategory);
-          setSelectedCategory(newCategory);
+          onAddCategory(data.name || newCategory);
+          setSelectedCategory(data.name || newCategory);
           setNewCategory('');
       } else {
           // Handle error response from server
@@ -48,9 +48,6 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
       console.error('Error creating category:', error);
   });
   }; // Close the handleAddCategory function here
-
- 
-
 
   return (
     <div>

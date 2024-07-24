@@ -14,7 +14,7 @@ const defaultCenter = {
   lng: -122.4194
 };
 
-export const MapComponent = () => {
+export const AptMapComponent = () => {
   const { actions } = useContext(Context);
   const [apartments, setApartments] = useState([]);
   const [selectedApartment, setSelectedApartment] = useState(null);
@@ -125,7 +125,7 @@ export const MapComponent = () => {
   };
 
   const handleAddCategory = (newCategory) => {
-    setPropertyCategories([...propertyCategories, newCategory]);
+    setPropertyCategories(prevCategories => [...prevCategories, newCategory]);
   };
 
   const handleSearch = async (filters) => {
@@ -232,4 +232,4 @@ export const MapComponent = () => {
   );
 };
 
-export default MapComponent;
+export default AptMapComponent;

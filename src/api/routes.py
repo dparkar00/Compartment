@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 import hashlib
 from werkzeug.security import generate_password_hash
 
+
 # UPDATED
 
 
@@ -140,6 +141,7 @@ def create_user():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'Signup successful'}), 200
+
 
 # @api.route('/private', methods=['GET'])
 # @jwt_required()
