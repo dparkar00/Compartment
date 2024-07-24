@@ -1,7 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, logging, request, jsonify, url_for, Blueprint
 from api.models import db, User, Categories, Listings
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
@@ -12,6 +12,7 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 from datetime import datetime, timedelta
 import hashlib
 from werkzeug.security import generate_password_hash
+
 
 # UPDATED
 api = Blueprint('api', __name__)
@@ -30,12 +31,58 @@ def handle_hello():
     return jsonify(response_body), 200
 
 
+api_key= 'AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8'
+def get_coordinates(address, api_key):
+    base_url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {
+        "address": address,
+        "key": api_key
+    }
+    response = requests.get(base_url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        if data['status'] == 'OK' and len(data['results']) > 0:
+            location = data['results'][0]['geometry']['location']
+            return location['lat'], location['lng']
+        else:
+            raise Exception("No results found or API error")
+    else:
+        raise Exception(f"Request failed with status code {response.status_code}")
+
+@api.route('/geocode', methods=['GET'])
+def geocode():
+    address = request.args.get('address')
+    if not address:
+        return jsonify({"error": "Address parameter is required"}), 400
+
+    try:
+        latitude, longitude = get_coordinates(address, api_key)
+        return jsonify({"latitude": latitude, "longitude": longitude})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
 @api.route('/apartments', methods=['GET'])
 def get_apartments():
-    
+    location = request.args.get('location', 'San Francisco, CA')
+    beds = request.args.get('beds')
+    baths = request.args.get('baths')
+
     url = "https://realtor-search.p.rapidapi.com/properties/search-rent"
 
-    querystring = {"location":"city:San Francisco, CA","sortBy":"newest","propertyType":"apartment"}
+    querystring = {
+        "location": f"city:{location}",
+        "sortBy": "newest",
+        "propertyType": "apartment"
+    }
+
+    if beds:
+        querystring["beds"] = beds
+    if baths:
+        querystring["baths"] = baths
 
     headers = {
         "x-rapidapi-key": "8c3485de4cmsh6d4dd16a945074ep14c798jsn2b52d362f60d",
@@ -44,7 +91,7 @@ def get_apartments():
 
     response = requests.get(url, headers=headers, params=querystring)
     data = response.json()
-    return jsonify(data),200
+    return jsonify(data), 200
    
 
 
@@ -91,6 +138,7 @@ def create_user():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'Signup successful'}), 200
+
 
 # @api.route('/private', methods=['GET'])
 # @jwt_required()

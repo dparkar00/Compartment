@@ -1,6 +1,6 @@
 import React from "react";
 
-import {MapComponent} from "../component/map";
+import {AptMapComponent} from "../component/aptMap";
 
 
 export const SearchPage = () => {
@@ -9,7 +9,7 @@ export const SearchPage = () => {
 	return (
 		<div>
 		  <h1>Apartment Map Component</h1>
-		  <MapComponent/>
+		  <AptMapComponent/>
 		</div>
 	  );
 };

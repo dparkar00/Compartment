@@ -76,6 +76,7 @@
 		"@react-google-maps/api": "^2.19.3",
 		"bootstrap": "^5.3.3",
 		"npm": "^10.8.1",
+		"openai": "^4.53.0",
 		"prop-types": "^15.6.1",
 		"react": "^16.8.4",
 		"react-bootstrap": "^2.10.3",

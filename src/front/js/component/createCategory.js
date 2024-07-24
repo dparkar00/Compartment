@@ -27,20 +27,6 @@ export const CreateCategory = () => {
         .catch(error => {
             console.error('Error creating category:', error);
         });
-
-        fetch(process.env.BACKEND_URL + "api/categories")
-            .then(response => {
-                if (!response.ok) {
-                    console.error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error('reFetch error:', error);
-            })
     };
 
     return (
@@ -72,7 +58,7 @@ export const CreateCategory = () => {
                                             onChange={(e) => setNewCategory(e.target.value)}
                                         />
                                         <div className="input-group-append">
-                                            <button className="btn btn-primary" type="button" onClick={handleCreateCategory; window.location.reload()}>
+                                            <button className="btn btn-primary" type="button" onClick={handleCreateCategory}>
                                                 Create
                                             </button>
                                         </div>
