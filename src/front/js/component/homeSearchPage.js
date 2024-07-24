@@ -3,7 +3,7 @@ import MapComponent from "./homeMap";
 import HomeSearch from "./homeSearch";
 import ApartmentList from "./apartmentList";
 
-export const SearchPage = () => {
+export const HomeSearchPage = () => {
   const [mapData, setMapData] = useState([]);
   const [searchResults, setSearchResults] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,4 +78,4 @@ export const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default HomeSearchPage;

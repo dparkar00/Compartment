@@ -19,7 +19,8 @@ import SignIn from "./component/signIn";
 import SignUp from "./component/signUp";
 import App from "./component/openAI";
 import HomeSearch from "./component/homeSearch";
-import MapComponent from "./component/map";
+import HomeMapComponent from "./component/homeMap";
+import HomeSearchPage from "./component/homeSearchPage"; // Import your new search page
 
 // ------ My imports ------------
 
@@ -38,13 +39,14 @@ const Layout = () => {
                         <Route element={<Category />} path="/categories" />
                         <Route element={<CategoryFavorites />} path="/categories/:category" />
                         <Route element={<Home />} path="/" />
-                        <Route element={<MapComponent />} path="/map" />
+                        <Route element={<HomeMapComponent />} path="/homeMap" />
                         <Route element={<Demo />} path="/demo" />
                         <Route element={<SignUp />} path="/signUp" />
                         <Route element={<SignIn />} path="/signIn" />
                         <Route element={<App />} path="/cityfinder" />
                         <Route element={<HomeSearch />} path="/homesearch" />
                         <Route element={<SearchPage />} path="/searchPage" />
+                        <Route element={<HomeSearchPage />} path="/homeSearchpage" /> 
                         <Route element={<Single />} path="/single/:theid" />
                         <Route element={<h1>Not found!</h1>} />
                     </Routes>

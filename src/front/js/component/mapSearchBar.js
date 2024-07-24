@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-  const MapSearchBar = ({ onSearch }) => {
+const MapSearchBar = ({ onSearch }) => {
   const [location, setLocation] = useState('');
   const [beds, setBeds] = useState('');
   const [baths, setBaths] = useState('');
