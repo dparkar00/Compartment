@@ -1,10 +1,11 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from flask import Flask, logging, request, jsonify, url_for, Blueprint
+from api.models import db, User, Categories, Listings
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 import requests
 
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
@@ -109,7 +110,7 @@ def create_signin():
         return jsonify(access_token = access_token)
     return jsonify(error = "Missing email or password"), 400
 
-@api.route('user', methods=['GET'])
+@api.route('/user', methods=['GET'])
 @jwt_required()
 def get_user():
     id = get_jwt_identity()
@@ -153,27 +154,54 @@ def create_user():
 
 #----------------------------------------JP-----------------------------------------
 
+
+
 #route for Categories
-@api.route('/categories')
+@api.route('/categories', methods=['GET'])
+@jwt_required()
 def get_categories():
-    # Replace with your data logic
-    category = [
-        {'id': 1, 'name': 'Chicken Nugget', 'items': ['Item A', 'Item B', 'Item C']},
-        {'id': 2, 'name': 'Category 2', 'items': ['Item D', 'Item E']},
-        {'id': 3, 'name': 'Category 3', 'items': ['Item F', 'Item G', 'Item H']}
-    ]
-    return jsonify(category)
+    all_categories = list(map(lambda x: x.serialize(), Categories.query.all()))
+    return jsonify(all_categories)
 
 #route for createCategory
 @api.route('/create_category', methods=['POST'])
+@jwt_required()
 def create_category():
-    data = request.get_json()
-    category_name = data.get('name')
+    try:
+        data = request.get_json()
+        uid = get_jwt_identity()
+       
+        category_name = data.get('name')
 
-    # Check if category_name is provided and not empty
-    if category_name:
-        # Add the category to the list (simulating storage)
-        category.append(category_name)
-        return jsonify({'message': 'Category created successfully'}), 200
-    else:
-        return jsonify({'error': 'Category name is required'}), 400
+        # Check if category_name is provided and not empty
+        if category_name:
+            # Add the category to the list (simulating storage)
+            category = Categories(uid=uid, categoryName=category_name)
+            db.session.add(category)
+            db.session.commit()
+            return jsonify({'message': 'Category created successfully'}), 200
+        else:
+            return jsonify({'error': 'Category name is required'}), 400
+    except Exception as e:
+       
+        return jsonify({'error': 'An error occurred'}), 500
+    
+# creating new entry to database from chatgpt
+@api.route('/add_listing', methods=['POST'])
+def add_listing():
+    data = request.json  # Assuming data is sent as JSON
+    
+    # Example of adding a listing
+    new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
+    db.session.add(new_listing)
+    db.session.commit()
+    
+    return jsonify({'message': 'Listing added successfully'}), 201
+
+@api.route("/get_listing_by_cat", methods=["GET"])
+def get_listings_by_cat():
+    data = request.json
+    all_listings = list(map(lambda x: x.serialize(), Listings.query.all()))
+    cat_name = data['category']
+    # query category table by name to get the id to then get the correct listings
+    # filters the listings by catogory and return only those

@@ -12,18 +12,45 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
     }
     setShowModal(false);
   };
+
   const getBedsDescription = (beds, bedsMax) => {
     const bedCount = beds !== null ? beds : bedsMax;
     return bedCount === 0 ? 'Studio' : `${bedCount} beds`;
   };
 
   const handleAddCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      onAddCategory(newCategory);
-      setSelectedCategory(newCategory);
-      setNewCategory('');
-    }
-  };
+    // Get the token from sessionStorage
+    const token = sessionStorage.getItem('token');
+
+    // Make an API call to Flask backend
+    fetch(process.env.BACKEND_URL + "api/create_category", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Ensure there's a space after 'Bearer'
+        },
+        body: JSON.stringify({ name: newCategory }),
+    })
+  .then(response => {
+      if (response.ok) {
+          // Category created successfully
+          console.log('Category created successfully');
+          // Reset the input field
+          onAddCategory(newCategory);
+          setSelectedCategory(newCategory);
+          setNewCategory('');
+      } else {
+          // Handle error response from server
+          console.error('Failed to create category');
+      }
+  })
+  .catch(error => {
+      console.error('Error creating category:', error);
+  });
+  }; // Close the handleAddCategory function here
+
+ 
+
 
   return (
     <div>
@@ -51,7 +78,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group controlId="formCategorySelect">
+          <Form.Group controlId="formCategorySelect">
               <Form.Label>Select Category</Form.Label>
               <Form.Control
                 as="select"
@@ -60,10 +87,12 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
               >
                 <option value="">Select a category</option>
                 {categories?.map((category, index) => (
-                  <option key={index} value={category}>{category}</option>
+                  <option key={category.id || index} value={category.id}>
+                    {category.categoryName}
+                  </option>
                 ))}
               </Form.Control>
-            </Form.Group>
+          </Form.Group>
             <hr />
             <InputGroup className="mb-3">
               <FormControl
@@ -83,5 +112,5 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         </Modal.Footer>
       </Modal>
     </div >
-  )
+  );
 };

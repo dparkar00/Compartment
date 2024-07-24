@@ -20,7 +20,7 @@ export const MapComponent = () => {
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [center, setCenter] = useState(defaultCenter);
   const [error, setError] = useState(null);
-  const [propertyCategories, setPropertyCategories] = useState(['Favorites', 'To Visit']);
+  const [propertyCategories, setPropertyCategories] = useState([]);
   const markersRef = useRef(new Map()); // Use useRef to store markers
   const mapRef = useRef(null); // Reference to the map instance
 
@@ -38,6 +38,34 @@ export const MapComponent = () => {
       throw error;
     }
   }, []);
+
+  const fetchCategories = () => {
+    const token = sessionStorage.getItem('token'); // Retrieve the JWT token from sessionStorage
+
+    return fetch(process.env.BACKEND_URL + "api/categories", {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` // Include the JWT token in the Authorization header
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Failed to fetch categories');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Fetched categories:', data);
+        return data; // Return the fetched categories data
+    })
+    .catch(error => {
+        console.error('Error fetching categories:', error.message);
+        // Optionally, you can handle the error by displaying a message to the user
+    });
+  };
 
   const fetchApartments = useCallback(async (filters = {}) => {
     try {
@@ -70,6 +98,17 @@ export const MapComponent = () => {
   useEffect(() => {
     fetchApartments();
   }, [fetchApartments]);
+
+  // Fetch categories when the component mounts
+  useEffect(() => {
+    fetchCategories()
+      .then(data => {
+        if (data) {
+          setPropertyCategories(data);
+        }
+      })
+      .catch(err => setError(err.message));
+  }, []);
 
   const handleSaveToCategory = (property, category) => {
     console.log(`Saving property to category: ${category}`);
@@ -170,10 +209,10 @@ export const MapComponent = () => {
               onCloseClick={() => setSelectedApartment(null)}
             >
               <PropertyListing
-                property={selectedApartment}
-                categories={propertyCategories}
-                onSaveToCategory={handleSaveToCategory}
-                onAddCategory={handleAddCategory}
+                  property={selectedApartment}
+                  categories={propertyCategories}
+                  onSaveToCategory={handleSaveToCategory}
+                  onAddCategory={handleAddCategory}
               />
             </InfoWindowF>
           )}
