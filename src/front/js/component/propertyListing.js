@@ -2,6 +2,21 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, InputGroup, FormControl, Carousel } from 'react-bootstrap';
 
 export const PropertyListing = ({ property, categories, onSaveToCategory, onAddCategory }) => {
+  console.log("PropertyListing received property:", property);
+
+  if (!property) {
+    return <div>No property data available.</div>;
+  }
+
+  // Check for different possible data structures
+  const address = property.location?.address?.line || property.address || 'Address not available';
+  const city = property.location?.address?.city || property.city || 'City not available';
+  const state = property.location?.address?.state_code || property.state || 'State not available';
+  const zip = property.location?.address?.postal_code || property.zip || 'ZIP not available';
+  const price = property.list_price || property.price || 'Price not available';
+  const beds = property.description?.beds || property.bedrooms || 'N/A';
+  const baths = property.description?.baths || property.bathrooms || 'N/A';
+
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -12,7 +27,9 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
     }
     setShowModal(false);
   };
+
   const getBedsDescription = (beds, bedsMax) => {
+    if (beds === null && bedsMax === null) return 'N/A';
     const bedCount = beds !== null ? beds : bedsMax;
     return bedCount === 0 ? 'Studio' : `${bedCount} beds`;
   };
@@ -27,9 +44,9 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
 
   return (
     <div>
-      <h3>{property.location.address.line}, {property.location.address.city}, {property.location.address.state_code} {property.location.address.postal_code}</h3>
-      <p>Price: ${property.list_price || property.list_price_max}</p>
-      <p>{getBedsDescription(property.description.beds, property.description.beds_max)}, {property.description.baths || property.description.baths_max} baths</p>
+      <h3>{address}, {city}, {state} {zip}</h3>
+      <p>Price: ${typeof price === 'number' ? price.toLocaleString() : price}</p>
+      <p>{getBedsDescription(beds, property.description?.beds_max)}, {baths} bath(s)</p>
       {property.photos && property.photos.length > 0 && (
         <Carousel>
           {property.photos.map((photo, index) => (
@@ -82,6 +99,6 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
           <Button variant="primary" onClick={handleSave}>Save</Button>
         </Modal.Footer>
       </Modal>
-    </div >
-  )
+    </div>
+  );
 };

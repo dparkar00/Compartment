@@ -62,24 +62,30 @@ const MapComponent = ({ searchResults }) => {
               <Marker
                 key={idx}
                 position={position}
-                onClick={() => setSelectedApartment(apartment)}
+                onClick={() => {
+                  console.log("Selected apartment data:", apartment);
+                  setSelectedApartment(apartment);
+                }}
               />
             );
           })}
           {selectedApartment && (
             <InfoWindow
-              position={{ 
-                lat: Number(selectedApartment.latitude), 
-                lng: Number(selectedApartment.longitude) 
+              position={{
+                lat: Number(selectedApartment.latitude),
+                lng: Number(selectedApartment.longitude)
               }}
               onCloseClick={() => setSelectedApartment(null)}
             >
-              <PropertyListing
-                property={selectedApartment}
-                categories={propertyCategories}
-                onSaveToCategory={handleSaveToCategory}
-                onAddCategory={handleAddCategory}
-              />
+              <div>
+                {console.log("InfoWindow selectedApartment:", selectedApartment)}
+                <PropertyListing
+                  property={selectedApartment}
+                  categories={propertyCategories}
+                  onSaveToCategory={handleSaveToCategory}
+                  onAddCategory={handleAddCategory}
+                />
+              </div>
             </InfoWindow>
           )}
         </GoogleMap>
