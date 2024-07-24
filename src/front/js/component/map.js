@@ -20,24 +20,10 @@ export const MapComponent = () => {
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [center, setCenter] = useState(defaultCenter);
   const [error, setError] = useState(null);
-  const [propertyCategories, setPropertyCategories] = useState([]);
+  const [propertyCategories, setPropertyCategories] = useState(['Favorites', 'To Visit']);
   const markersRef = useRef(new Map()); // Use useRef to store markers
   const mapRef = useRef(null); // Reference to the map instance
 
-  const fetchCoordinates = useCallback(async (address) => {
-    try {
-      const response = await fetch(process.env.BACKEND_URL + `api/geocode?address=${encodeURIComponent(address)}`);
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching coordinates:', error);
-      throw error;
-    }
-  }, []);
 
   const fetchCategories = () => {
     const token = sessionStorage.getItem('token'); // Retrieve the JWT token from sessionStorage
@@ -58,6 +44,7 @@ export const MapComponent = () => {
         return response.json();
     })
     .then(data => {
+        setPropertyCategories(data);
         console.log('Fetched categories:', data);
         return data; // Return the fetched categories data
     })
@@ -66,6 +53,30 @@ export const MapComponent = () => {
         // Optionally, you can handle the error by displaying a message to the user
     });
   };
+
+
+
+
+
+
+
+
+
+
+  const fetchCoordinates = useCallback(async (address) => {
+    try {
+      const response = await fetch(process.env.BACKEND_URL + `api/geocode?address=${encodeURIComponent(address)}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching coordinates:', error);
+      throw error;
+    }
+  }, []);
 
   const fetchApartments = useCallback(async (filters = {}) => {
     try {
@@ -99,7 +110,6 @@ export const MapComponent = () => {
     fetchApartments();
   }, [fetchApartments]);
 
-  // Fetch categories when the component mounts
   useEffect(() => {
     fetchCategories()
       .then(data => {
@@ -209,10 +219,10 @@ export const MapComponent = () => {
               onCloseClick={() => setSelectedApartment(null)}
             >
               <PropertyListing
-                  property={selectedApartment}
-                  categories={propertyCategories}
-                  onSaveToCategory={handleSaveToCategory}
-                  onAddCategory={handleAddCategory}
+                property={selectedApartment}
+                categories={propertyCategories}
+                onSaveToCategory={handleSaveToCategory}
+                onAddCategory={handleAddCategory}
               />
             </InfoWindowF>
           )}

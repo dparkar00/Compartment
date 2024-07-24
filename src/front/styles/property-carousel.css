@@ -1,0 +1,15 @@
+
+
+.vertical-carousel {
+    max-height: 100vh;
+    overflow-y: scroll;
+    width: 450px; 
+  }
+  
+  .vertical-carousel .carousel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }

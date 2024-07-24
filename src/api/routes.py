@@ -188,15 +188,33 @@ def create_category():
     
 # creating new entry to database from chatgpt
 @api.route('/add_listing', methods=['POST'])
+
+@jwt_required()
 def add_listing():
-    data = request.json  # Assuming data is sent as JSON
+    try:
+        data = request.get_json()
+        
+        # Validate incoming data
+        if not data or not 'cid' in data or not 'listingName' in data:
+            return jsonify({'error': 'Invalid input'}), 400
+        
+        # Check if the category exists
+        category = Categories.query.get(data['cid'])
+        if not category:
+            return jsonify({'error': 'Category not found'}), 404
+        
+        # Add the new listing
+        new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
+        db.session.add(new_listing)
+        db.session.commit()
+        
+        return jsonify({'message': 'Listing added successfully'}), 201
     
-    # Example of adding a listing
-    new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
-    db.session.add(new_listing)
-    db.session.commit()
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of error
+        app.logger.error(f"Error adding listing: {str(e)}")
+        return jsonify({'error': 'An error occurred while adding the listing'}), 500
     
-    return jsonify({'message': 'Listing added successfully'}), 201
 
 @api.route("/get_listing_by_cat", methods=["GET"])
 def get_listings_by_cat():
