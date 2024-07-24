@@ -7,9 +7,11 @@ export const Category = () => {
     const [newCategoryName, setNewCategoryName] = useState('');
 
     const fetchCategories = async () => {
+        
         const response = await fetch(process.env.BACKEND_URL + "api/categories");
         if (response.ok) {
             const data = await response.json();
+            console.log('Categories successfully gotten');
             setCategories(data);
         } else {
             console.error('Failed to fetch categories:', response.status);
@@ -19,7 +21,7 @@ export const Category = () => {
     const handleCreateCategory = async () => {
         if (!newCategoryName) return;
 
-        const response = await fetch(process.env.BACKEND_URL + "api/categories", {
+        const response = await fetch(process.env.BACKEND_URL + "api/create_category", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -48,6 +50,7 @@ export const Category = () => {
                             <Link to={`/categories/${category.id}`} key={category.id}>
                                 <div className="card mb-3">
                                     <div className="card-body">
+                                        <h2>{category.categoryName}</h2>
                                         <img src={CatImageUrl} alt="Category" />
                                     </div>
                                 </div>
