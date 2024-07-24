@@ -15,13 +15,10 @@ from werkzeug.security import generate_password_hash
 
 
 # UPDATED
-
-
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
-
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -154,69 +151,46 @@ def create_user():
 #     else :
 #         return jsonify({"user_id": user.id, "email": user.email}), 200
 
-#----------------------------------------JP-----------------------------------------
+#----------------------------------------JP---------------------------------------
 
-
-
-#route for Categories
+#route for getting Categories
 @api.route('/categories', methods=['GET'])
-@jwt_required()
+# @jwt_required()
 def get_categories():
     all_categories = list(map(lambda x: x.serialize(), Categories.query.all()))
     return jsonify(all_categories)
 
 #route for createCategory
 @api.route('/create_category', methods=['POST'])
-@jwt_required()
+# @jwt_required()
 def create_category():
-    try:
-        data = request.get_json()
-        uid = get_jwt_identity()
-       
-        category_name = data.get('name')
+    data = request.get_json()
+    uid = 1
+    # get_jwt_identity()
 
-        # Check if category_name is provided and not empty
-        if category_name:
-            # Add the category to the list (simulating storage)
-            category = Categories(uid=uid, categoryName=category_name)
-            db.session.add(category)
-            db.session.commit()
-            return jsonify({'message': 'Category created successfully'}), 200
-        else:
-            return jsonify({'error': 'Category name is required'}), 400
-    except Exception as e:
-       
-        return jsonify({'error': 'An error occurred'}), 500
+    category_name = data.get('name')
+
+    # Check if category_name is provided and not empty
+    if category_name:
+        # Add the category to the list (simulating storage)
+        category = Categories(uid = uid, categoryName = category_name)
+        db.session.add(category)
+        db.session.commit()
+        return jsonify({'message': 'Category created successfully'}), 200
+    else:
+        return jsonify({'error': 'Category name is required'}), 400
     
 # creating new entry to database from chatgpt
 @api.route('/add_listing', methods=['POST'])
-
-@jwt_required()
 def add_listing():
-    try:
-        data = request.get_json()
-        
-        # Validate incoming data
-        if not data or not 'cid' in data or not 'listingName' in data:
-            return jsonify({'error': 'Invalid input'}), 400
-        
-        # Check if the category exists
-        category = Categories.query.get(data['cid'])
-        if not category:
-            return jsonify({'error': 'Category not found'}), 404
-        
-        # Add the new listing
-        new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
-        db.session.add(new_listing)
-        db.session.commit()
-        
-        return jsonify({'message': 'Listing added successfully'}), 201
+    data = request.json  # Assuming data is sent as JSON
     
-    except Exception as e:
-        db.session.rollback()  # Rollback in case of error
-        app.logger.error(f"Error adding listing: {str(e)}")
-        return jsonify({'error': 'An error occurred while adding the listing'}), 500
+    # Example of adding a listing
+    new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
+    db.session.add(new_listing)
+    db.session.commit()
     
+    return jsonify({'message': 'Listing added successfully'}), 201
 
 @api.route("/get_listing_by_cat", methods=["GET"])
 def get_listings_by_cat():
@@ -225,3 +199,40 @@ def get_listings_by_cat():
     cat_name = data['category']
     # query category table by name to get the id to then get the correct listings
     # filters the listings by catogory and return only those
+
+#---------------------------------Secret Valerie Code-------------------------------
+
+# @api.route('/user', methods=['GET'])
+# @jwt_required()
+# def get_user():
+#     id = get_jwt_identity()
+#     user = User.query.filter_by(id=id).first()
+
+#     if user is not None:
+#         return jsonify(user.serialize()), 200
+
+#     return jsonify({"message": "Uh-oh"}), 400
+
+# @api.route('/room', methods=['POST'])
+# def add_room():
+#     request_body = request.get_json(force=True)
+#     name = request_body.get("name")
+#     pic_url = request_body.get("pic_url")
+#     objects = request_body.get("objects")
+#     meta_tags = request_body.get("meta_tag")
+
+#     return jsonify(request_body), 200
+
+# @api.route('/rooms', methods=['GET'])
+# def get_rooms():
+#     rooms_list = Room.query
+#     if "name" in request.args:
+#         rooms_list = rooms_list.filter(Room.name.ilike(f"%{request.args['name']}%"))
+#     rooms_list = rooms_list.all()
+#     all_rooms = list(map(lambda room: room.serialize(), rooms_list))
+#     return jsonify(all_rooms), 200
+
+# @api.route('/objects/<int:id>', methods=['GET'])
+# def get_object(id):
+#     r_object = Object.query.filter_by(id=id).first()
+#     return jsonify(r_object.serialize()), 200
