@@ -30,8 +30,8 @@ def handle_hello():
     }
     return jsonify(response_body), 200
 
-@api.route('/apartments', methods=['GET'])
-def get_apartments():
+@api.route('/homes', methods=['GET'])
+def get_homes():
     base_url = "https://zillow-com1.p.rapidapi.com/propertyExtendedSearch"
     
     # Get parameters from the request, with defaults
