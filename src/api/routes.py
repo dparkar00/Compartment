@@ -389,6 +389,11 @@ def create_category():
     else:
         return jsonify({'error': 'Category name is required'}), 400
     
+@api.route('/delete_category', methods=['DELETE'])
+def delete_category():
+    return
+
+    
 # creating new entry to database from chatgpt
 @api.route('/add_listing', methods=['POST'])
 def add_listing():
@@ -406,6 +411,8 @@ def get_listings_by_cat():
     data = request.json
     all_listings = list(map(lambda x: x.serialize(), Listings.query.all()))
     cat_name = data['category']
+
+    return jsonify(all_listings)
     # query category table by name to get the id to then get the correct listings
     # filters the listings by catogory and return only those
 
