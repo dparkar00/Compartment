@@ -10,12 +10,16 @@ import injectContext from "./store/appContext";
 import { Navbar } from "./component/navbar";
 import { Footer } from "./component/footer";
 
-import { SearchPage } from "./pages/searchPage";
+import SearchPage from "./component/searchPage";
 
 import { Category } from "./pages/categories";
 import { CategoryFavorites } from "./pages/categoryFavorites";
 import SignIn from "./component/signIn";
 import SignUp from "./component/signUp";
+import App from "./component/openAI";
+import HomeSearch from "./component/homeSearch";
+import HomeMapComponent from "./component/homeMap";
+import HomeSearchPage from "./component/homeSearchPage"; // Import your new search page
 
 // ------ My imports ------------
 
@@ -25,8 +29,6 @@ const Layout = () => {
     // you can set the basename on the .env file located at the root of this project, E.g: BASENAME=/react-hello-webapp/
     const basename = process.env.BASENAME || "";
 
-    if(!process.env.BACKEND_URL || process.env.BACKEND_URL == "") return <BackendURL/ >;
-
     return (
         <div>
             <BrowserRouter basename={basename}>
@@ -35,11 +37,16 @@ const Layout = () => {
                     <Routes>
                         <Route element={<Category />} path="/categories" />
                         <Route element={<CategoryFavorites />} path="/categories/:category" />
-                        <Route element={<Home />} path="/home" />
+                        <Route element={<Home />} path="/" />
+                        <Route element={<HomeMapComponent />} path="/homeMap" />
+                        <Route element={<Demo />} path="/demo" />
+
                         <Route element={<SignUp />} path="/signUp" />
                         <Route element={<SignIn />} path="/signIn" />
+                        <Route element={<App />} path="/cityfinder" />
+                        {/* <Route element={<HomeSearch />} path="/homesearch" /> */}
                         <Route element={<SearchPage />} path="/searchPage" />
-                        
+                        <Route element={<HomeSearchPage />} path="/homeSearchpage" />
                         <Route element={<Single />} path="/single/:theid" />
                         <Route element={<h1>Not found!</h1>} />
                     </Routes>

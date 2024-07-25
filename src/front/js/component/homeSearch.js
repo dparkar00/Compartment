@@ -8,33 +8,33 @@ function HomeSearch({ onSearchResults }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     console.log('Starting handleSubmit');
-  
+
     setLoading(true);
     setError(null);
-  
+
     try {
       const preferences = parsePreferences(userPrompt);
       console.log("Parsed preferences:", preferences);
-  
+
       if (!preferences) {
         throw new Error('Could not parse input. Please describe your preferences clearly.');
       }
-  
+
       const url = "https://bug-free-train-r4pxjxgx5vp254xp-3001.app.github.dev/api/analyze_apartments";
-      
+
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preferences })
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const responseBody = await response.json();
       console.log("Response received:", responseBody); // Log the entire response
-  
+
       if (responseBody.apartments && responseBody.apartments.length > 0) {
         const processedApartments = processApartments(responseBody.apartments);
         onSearchResults({ ...responseBody, apartments: processedApartments });
@@ -42,7 +42,7 @@ function HomeSearch({ onSearchResults }) {
         console.log("No apartments found in the response");
         onSearchResults(responseBody);
       }
-  
+
     } catch (error) {
       console.error("Error in handleSubmit:", error);
       setError(error.message);
@@ -56,13 +56,13 @@ function HomeSearch({ onSearchResults }) {
       // Check if latitude and longitude are directly available
       let lat = apt.latitude;
       let lng = apt.longitude;
-  
+
       // If not, check if they're nested under location.address.coordinate
       if (!lat && !lng && apt.location && apt.location.address && apt.location.address.coordinate) {
         lat = apt.location.address.coordinate.lat;
         lng = apt.location.address.coordinate.lon;
       }
-  
+
       return {
         id: apt.zpid,
         latitude: lat,
@@ -77,7 +77,7 @@ function HomeSearch({ onSearchResults }) {
       };
     }).filter(apt => apt.latitude && apt.longitude); // Only include apartments with valid coordinates
   };
-  
+
   const parsePreferences = (input) => {
     const preferences = {};
     const locationMatch = input.match(/in (\w+(?:,?\s*\w+)*)/i);
@@ -87,17 +87,17 @@ function HomeSearch({ onSearchResults }) {
     const priceMatch = input.match(/(\d{1,3}(?:,\d{3})*)\s*to\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
     const lessThanPriceMatch = input.match(/less\s*than\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
     const moreThanPriceMatch = input.match(/more\s*than\s*(\d{1,3}(?:,\d{3})*)\s*(?:dollars|usd|$)/i);
-  
+
     // Updated square feet matching
     const squareFeetMatch = input.match(/(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
     const lessThanSqftMatch = input.match(/less\s*than\s*(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
     const moreThanSqftMatch = input.match(/more\s*than\s*(\d+)\s*(?:sq(?:uare)?\s*f(?:ee)?t|sqft)/i);
-  
+
     if (locationMatch) preferences.location = locationMatch[1];
     if (homeTypeMatch) preferences.home_type = homeTypeMatch[1].charAt(0).toUpperCase() + homeTypeMatch[1].slice(1);
     if (bedroomsMatch) preferences.bedrooms = parseInt(bedroomsMatch[1], 10);
     if (bathroomsMatch) preferences.bathrooms = parseInt(bathroomsMatch[1], 10);
-  
+
     // Handle price preferences
     if (priceMatch) {
       preferences.min_price = parseInt(priceMatch[1].replace(/,/g, ''), 10);
@@ -111,7 +111,7 @@ function HomeSearch({ onSearchResults }) {
     } else if (input.includes('more') || input.includes('over') || input.includes('at least')) {
       preferences.min_price = parseInt(input.match(/(\d{1,3}(?:,\d{3})*)/)[1].replace(/,/g, ''), 10);
     }
-  
+
     // Handle square footage preferences
     if (lessThanSqftMatch) {
       preferences.max_sqft = parseInt(lessThanSqftMatch[1], 10);
@@ -129,9 +129,9 @@ function HomeSearch({ onSearchResults }) {
         preferences.max_sqft = sqft;
       }
     }
-  
+
     preferences.sort = "Newest";
-  
+
     return Object.keys(preferences).length > 0 ? preferences : null;
   };
 
