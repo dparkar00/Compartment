@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import CatImageUrl from "../../img/CHitchEN winGs.png";
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 export const Category = () => {
     const [categories, setCategories] = useState([]);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const { userId }= useParams();
 
     const fetchCategories = async () => {
         

@@ -363,8 +363,6 @@ def generate_city_list():
 #----------------------------------------JP---------------------------------------
 
 #route for getting Categories
-@api.route('/categories', methods=['GET'])
-# @jwt_required()
 def get_categories():
     all_categories = list(map(lambda x: x.serialize(), Categories.query.all()))
     return jsonify(all_categories)
@@ -393,13 +391,18 @@ def create_category():
 @api.route('/add_listing', methods=['POST'])
 def add_listing():
     data = request.json  # Assuming data is sent as JSON
-    
+    if not data['cid'] or not data['listingName']:
+        return jsonify({'error': 'Missing cid or listingName'}), 400
     # Example of adding a listing
     new_listing = Listings(cid=data['cid'], listingName=data['listingName'])
     db.session.add(new_listing)
     db.session.commit()
     
     return jsonify({'message': 'Listing added successfully'}), 201
+
+
+
+
 
 @api.route("/get_listing_by_cat", methods=["GET"])
 def get_listings_by_cat():

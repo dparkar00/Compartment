@@ -9,13 +9,37 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
 
   const handleSave = () => {
     if (selectedCategory) {
+    // try {
+    //   // First, call the API to add the listing to the category
+    //   const response = await fetch('/api/addListingToCategory', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       propertyId: property.id, // Assuming property has an id
+    //       categoryId: selectedCategory.id, // Assuming selectedCategory has an id
+    //     }),
+    //   });
 
+    //   if (!response.ok) {
+    //     throw new Error('Failed to add listing to category');
+    //   }
 
+    //   const result = await response.json();
 
-      
-      onSaveToCategory(property, selectedCategory);
+    //   // If the API call was successful, then call onSaveToCategory
+    //   onSaveToCategory(property, selectedCategory);
+
+    //   // Optionally, you can show a success message here
+    //   console.log('Listing added to category successfully:', result);
+
+    // // } catch (error) {
+    // //   // Handle any errors here
+    // //   console.error('Error adding listing to category:', error);
+    // //   // Optionally, you can show an error message to the user
+    // }
     }
-    setShowModal(false);
   };
 
   const getBedsDescription = (beds, bedsMax) => {
@@ -53,6 +77,35 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         console.error('Error creating category:', error);
       });
   }; // Close the handleAddCategory function here
+
+  // const addToCategory = () => {
+  //   const token = sessionStorage.getItem('token'); // Retrieve the JWT token from sessionStorage
+
+  //   return fetch(process.env.BACKEND_URL + "api/categories", {
+  //       method: 'GET',
+  //       headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': `Bearer ${token}` // Include the JWT token in the Authorization header
+  //       }
+  //   })
+  //   .then(response => {
+  //       if (!response.ok) {
+  //           return response.json().then(data => {
+  //               throw new Error(data.error || 'Failed to fetch categories');
+  //           });
+  //       }
+  //       return response.json();
+  //   })
+  //   .then(data => {
+  //       setPropertyCategories(data);
+  //       console.log('Fetched categories:', data);
+  //       return data; // Return the fetched categories data
+  //   })
+  //   .catch(error => {
+  //       console.error('Error fetching categories:', error.message);
+  //       // Optionally, you can handle the error by displaying a message to the user
+  //   });
+  // };
 
   return (
     <div className="property-listing">

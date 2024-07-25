@@ -7,49 +7,47 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    categories = db.relationship('Categories', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return f'<User {self.email}>'
     
     def getCategories(self):
-        categories = Categories.query.filter_by(uid=self.id)
-        categories = [category.serialize() for category in categories]
-        return categories
+        return [category.serialize() for category in self.categories]
     
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
             "categories": self.getCategories(),
-            # do not serialize the password, its a security breach
         }
     
 class Categories(db.Model):
     __tablename__ = "Categories"
     id = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.Integer, nullable=False)
-    categoryName = db.Column(db.String(1000), unique=False, nullable=False)
+    uid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    categoryName = db.Column(db.String(1000), unique=True, nullable=False)
+    listings = db.relationship('Listings', backref='category', lazy='dynamic')
     
     def __repr__(self):
         return f'<Category {self.categoryName}>'
     
-    # def getListings(self):
-    #     listings = Listings.query.filter_by(cid=self.categoryName)
-    #     listings = [listing.serialize() for listing in listings]
-    #     return listings
+    def getListings(self):
+        return [listing.serialize() for listing in self.listings]
 
     def serialize(self):
         return {
             "id": self.id,
             "uid": self.uid,
             "categoryName": self.categoryName,
+            "listings": self.getListings()
         }
 
 class Listings(db.Model):
     __tablename__ = "Listings"
     id = db.Column(db.Integer, primary_key=True)
-    cid = db.Column(db.Integer, nullable=False)
-    listingName = db.Column(db.String(1000), unique=False, nullable=False)
+    cid = db.Column(db.Integer, db.ForeignKey('Categories.id'), nullable=False)
+    listingName = db.Column(db.String(1000), unique=True, nullable=False)
     
     def __repr__(self):
         return f'<Listing {self.listingName}>'
@@ -57,6 +55,6 @@ class Listings(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "uid": self.uid,
+            "cid": self.cid,
             "listingName": self.listingName,
- }
+        }
