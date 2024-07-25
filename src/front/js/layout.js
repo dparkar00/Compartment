@@ -4,7 +4,6 @@ import ScrollToTop from "./component/scrollToTop";
 import { BackendURL } from "./component/backendURL";
 
 import { Home } from "./pages/home";
-import { Demo } from "./pages/demo";
 import { Single } from "./pages/single";
 import injectContext from "./store/appContext";
 
@@ -41,12 +40,13 @@ const Layout = () => {
                         <Route element={<Home />} path="/" />
                         <Route element={<HomeMapComponent />} path="/homeMap" />
                         <Route element={<Demo />} path="/demo" />
+
                         <Route element={<SignUp />} path="/signUp" />
                         <Route element={<SignIn />} path="/signIn" />
                         <Route element={<App />} path="/cityfinder" />
-                        <Route element={<HomeSearch />} path="/homesearch" />
+                        {/* <Route element={<HomeSearch />} path="/homesearch" /> */}
                         <Route element={<SearchPage />} path="/searchPage" />
-                        <Route element={<HomeSearchPage />} path="/homeSearchpage" /> 
+                        <Route element={<HomeSearchPage />} path="/homeSearchpage" />
                         <Route element={<Single />} path="/single/:theid" />
                         <Route element={<h1>Not found!</h1>} />
                     </Routes>

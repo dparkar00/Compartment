@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const MapSearchBar = ({ onSearch }) => {
+ export const MapSearchBar = ({ onSearch }) => {
   const [location, setLocation] = useState('');
   const [beds, setBeds] = useState('');
   const [baths, setBaths] = useState('');
@@ -37,3 +37,5 @@ const MapSearchBar = ({ onSearch }) => {
 
 
 export default MapSearchBar;
+
+

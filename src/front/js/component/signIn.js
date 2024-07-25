@@ -1,6 +1,6 @@
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import React, {useState, useEffect, useContext} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Context } from '../store/appContext';
 import { useNavigate } from 'react-router-dom';
 import Private from '../pages/private';
@@ -20,7 +20,7 @@ function SignIn() {
     const success = await actions.logIn(email, password);
     if (success) {
       console.log('User signed up successfully')
-      navigate('/private')
+      navigate('/searchPage')
     } else {
       console.log('Signin failed')
     }

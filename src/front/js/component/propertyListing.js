@@ -2,21 +2,6 @@ import React, { useState } from 'react';
 import { Modal, Button, Form, InputGroup, FormControl, Carousel } from 'react-bootstrap';
 
 export const PropertyListing = ({ property, categories, onSaveToCategory, onAddCategory }) => {
-  console.log("PropertyListing received property:", property);
-
-  if (!property) {
-    return <div>No property data available.</div>;
-  }
-
-  // Check for different possible data structures
-  const address = property.location?.address?.line || property.address || 'Address not available';
-  const city = property.location?.address?.city || property.city || 'City not available';
-  const state = property.location?.address?.state_code || property.state || 'State not available';
-  const zip = property.location?.address?.postal_code || property.zip || 'ZIP not available';
-  const price = property.list_price || property.price || 'Price not available';
-  const beds = property.description?.beds || property.bedrooms || 'N/A';
-  const baths = property.description?.baths || property.bathrooms || 'N/A';
-
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -29,24 +14,46 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
   };
 
   const getBedsDescription = (beds, bedsMax) => {
-    if (beds === null && bedsMax === null) return 'N/A';
     const bedCount = beds !== null ? beds : bedsMax;
     return bedCount === 0 ? 'Studio' : `${bedCount} beds`;
   };
 
   const handleAddCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      onAddCategory(newCategory);
-      setSelectedCategory(newCategory);
-      setNewCategory('');
-    }
-  };
+    // Get the token from sessionStorage
+    const token = sessionStorage.getItem('token');
+
+    // Make an API call to Flask backend
+    fetch(process.env.BACKEND_URL + "api/create_category", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Ensure there's a space after 'Bearer'
+      },
+      body: JSON.stringify({ name: newCategory }),
+    })
+      .then(response => {
+        if (response.ok) {
+          // Category created successfully
+          console.log('Category created successfully');
+          // Reset the input field
+          onAddCategory(data.name || newCategory);
+          setSelectedCategory(data.name || newCategory);
+          setNewCategory('');
+        } else {
+          // Handle error response from server
+          console.error('Failed to create category');
+        }
+      })
+      .catch(error => {
+        console.error('Error creating category:', error);
+      });
+  }; // Close the handleAddCategory function here
 
   return (
     <div>
-      <h3>{address}, {city}, {state} {zip}</h3>
-      <p>Price: ${typeof price === 'number' ? price.toLocaleString() : price}</p>
-      <p>{getBedsDescription(beds, property.description?.beds_max)}, {baths} bath(s)</p>
+      <h3>{property.location.address.line}, {property.location.address.city}, {property.location.address.state_code} {property.location.address.postal_code}</h3>
+      <p>Price: ${property.list_price || property.list_price_max}</p>
+      <p>{getBedsDescription(property.description.beds, property.description.beds_max)}, {property.description.baths || property.description.baths_max} baths</p>
       {property.photos && property.photos.length > 0 && (
         <Carousel>
           {property.photos.map((photo, index) => (
@@ -77,7 +84,9 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
               >
                 <option value="">Select a category</option>
                 {categories?.map((category, index) => (
-                  <option key={index} value={category}>{category}</option>
+                  <option key={category.id || index} value={category.id}>
+                    {category.categoryName}
+                  </option>
                 ))}
               </Form.Control>
             </Form.Group>
@@ -99,6 +108,6 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
           <Button variant="primary" onClick={handleSave}>Save</Button>
         </Modal.Footer>
       </Modal>
-    </div>
+    </div >
   );
 };
