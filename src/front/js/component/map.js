@@ -19,52 +19,49 @@ export const MapComponent = () => {
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [location, setLocation] = useState('San Francisco, CA'); // Default location
   const [beds, setBeds] = useState(null);
-  const [baths,setBaths] =useState(null);
+  const [baths, setBaths] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchApartments() {
       try {
-        const response = await fetch(process.env.BACKEND_URL+'api/apartments');
+        const response = await fetch(process.env.BACKEND_URL + 'api/apartments');
         if (!response.ok) {
           throw new Error(`Network response was not ok: ${response.statusText}`);
         }
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
           const data = await response.json();
-          
-          setApartments(data.data.results); 
+
+          setApartments(data.data.results);
 
           for (let i = 0; i < apartments.length; i++) {
 
-            if(apartments[i].description.beds == null){
+            if (apartments[i].description.beds == null) {
               setBeds(apartments[i].description.beds_max);
-            }else {
+            } else {
               setBeds(apartments[i].description.beds)
             }
 
-            if(apartments[i].description.baths == null){
+            if (apartments[i].description.baths == null) {
               setBaths(apartments[i].description.baths_max);
-            }else{
+            } else {
               setBaths(apartments[i].description.baths);
             }
-            
+
           }
 
 
-        } 
+        }
       } catch (error) {
         setError(error);
         console.error('Error fetching apartments:', error);
       }
     }
 
-   
+
     fetchApartments();
-}, []);
-
-  
-
+  }, []);
 
 
 
@@ -89,10 +86,10 @@ export const MapComponent = () => {
           >
             <div>
               <h3>{selectedApartment.location.address.line} {selectedApartment.location.address.postal_code} , {selectedApartment.location.address.state_code} </h3>
-             
-              
+
+
               <p>{selectedApartment.list_price}</p>
-              <p>{selectedApartment.description.beds || selectedApartment.description.beds_max } beds, {selectedApartment.description.baths || selectedApartment.description.baths_max} baths</p>
+              <p>{selectedApartment.description.beds || selectedApartment.description.beds_max} beds, {selectedApartment.description.baths || selectedApartment.description.baths_max} baths</p>
             </div>
           </InfoWindow>
         )}

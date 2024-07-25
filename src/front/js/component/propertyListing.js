@@ -8,6 +8,10 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
 
   const handleSave = () => {
     if (selectedCategory) {
+
+
+
+      
       onSaveToCategory(property, selectedCategory);
     }
     setShowModal(false);
@@ -24,29 +28,29 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
 
     // Make an API call to Flask backend
     fetch(process.env.BACKEND_URL + "api/create_category", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Ensure there's a space after 'Bearer'
-        },
-        body: JSON.stringify({ name: newCategory }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Ensure there's a space after 'Bearer'
+      },
+      body: JSON.stringify({ name: newCategory }),
     })
-  .then(response => {
-      if (response.ok) {
+      .then(response => {
+        if (response.ok) {
           // Category created successfully
           console.log('Category created successfully');
           // Reset the input field
           onAddCategory(data.name || newCategory);
           setSelectedCategory(data.name || newCategory);
           setNewCategory('');
-      } else {
+        } else {
           // Handle error response from server
           console.error('Failed to create category');
-      }
-  })
-  .catch(error => {
-      console.error('Error creating category:', error);
-  });
+        }
+      })
+      .catch(error => {
+        console.error('Error creating category:', error);
+      });
   }; // Close the handleAddCategory function here
 
   return (
@@ -75,7 +79,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         </Modal.Header>
         <Modal.Body>
           <Form>
-          <Form.Group controlId="formCategorySelect">
+            <Form.Group controlId="formCategorySelect">
               <Form.Label>Select Category</Form.Label>
               <Form.Control
                 as="select"
@@ -89,7 +93,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                   </option>
                 ))}
               </Form.Control>
-          </Form.Group>
+            </Form.Group>
             <hr />
             <InputGroup className="mb-3">
               <FormControl
