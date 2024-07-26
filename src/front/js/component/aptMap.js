@@ -1,7 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { GoogleMap, LoadScript, MarkerF, InfoWindowF } from '@react-google-maps/api';
-import { useParams } from 'react-router-dom';
-
 import { Context } from '../store/appContext';
 import { PropertyListing } from './propertyListing';
 import PropertyCarousel from './propertyCarousal';
@@ -27,7 +25,6 @@ export const AptMapComponent = () => {
   const [propertyCategories, setPropertyCategories] = useState(['Favorites', 'To Visit']);
   const markersRef = useRef(new Map()); // Use useRef to store markers
   const mapRef = useRef(null); // Reference to the map instance
-  const userId= useParams();
 
 
   const fetchCategories = () => {
@@ -185,10 +182,10 @@ export const AptMapComponent = () => {
 
   
   return (
-    <div className="map-container">
+    <div className="apt-map-container">
       <MapSearchBar onSearch={handleSearch} />
-      <div className="map-and-carousel">
-        <div className="map">
+      <div className="apt-map-and-carousel">
+        <div className="apt-map">
           <LoadScript googleMapsApiKey="AIzaSyA78pBoItwl17q9g5pZPNUYmLuOnTDPVo8">
             <GoogleMap
               mapContainerStyle={containerStyle}

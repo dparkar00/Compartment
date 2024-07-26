@@ -82,8 +82,10 @@ export const CarouselPropertyListing = ({ property, categories, onSaveToCategory
     <p>{getBedsDescription(property.description.beds, property.description.beds_max)}, {property.description.baths || property.description.baths_max} baths</p>
       </div>
    
-   
-    <Button className="add-to-category-btn" onClick={() => setShowModal(true)}>Add to Category</Button>
+   <div className='add-button'>
+      <Button className="add-to-category-btn" onClick={() => setShowModal(true)}>Add to Category</Button>
+   </div>
+    
 
 
 
