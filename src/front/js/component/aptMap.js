@@ -33,8 +33,8 @@ export const AptMapComponent = () => {
     return fetch(process.env.BACKEND_URL + "api/categories", {
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // Include the JWT token in the Authorization header
+            'Content-Type': 'application/json'
+           // 'Authorization': `Bearer ${token}` // Include the JWT token in the Authorization header
         }
     })
     .then(response => {
