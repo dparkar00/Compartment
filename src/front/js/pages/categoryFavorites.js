@@ -12,10 +12,10 @@ export const CategoryFavorites = () => {
       const data = await response.json();
       console.log('Listings successfully gotten');
       setListings(data);
-  } else {
+    } else {
       console.error('Failed to fetch listings:', response.status);
-  }
-};
+    }
+  };
 
   useEffect(() => {
     fetchListings();
@@ -26,29 +26,25 @@ export const CategoryFavorites = () => {
       <div className="App">
         <div className="container mt-5">
           <div className="card-deck">
-            yo
-            {listings.map(listing => (
-              <div className="card mb-3" key={listing.id}>
-                <div className="card-body">
-                  <h5 className="card-title">
-                    <Link to={`/get_listing_by_cat/${listing.id}`}>
-                    </Link>
-                  </h5>
-                </div>
-                <div className="card-footer">
-                  <ul className="list-unstyled">
-                    {/* {listing.map((listingName, index) => (
-                      <li key={index}>{listingName}</li>
-                    ))} */}
-                    {listing.listingName}
-                  </ul>
+            {/* {listings.map(listing => ( */}
+              <div className="card mb-3">
+                {/* key={listing.id} */}
+                <div className="card-body d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 className="card-title">
+                      2558-62 Sutter St, San Francisco, CA 94115
+                    </h5>
+                    <h5>Price: $3595</h5>
+                    <h5>3 beds, 1 baths</h5>
+                  </div>
+                  <button type="button" className="btn btn-danger" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
                 </div>
               </div>
-            ))}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
