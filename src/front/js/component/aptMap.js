@@ -198,10 +198,10 @@ export const AptMapComponent = () => {
             });
           }}
         >
-          {apartments.map(apartment => (
+          {apartments.map((apartment, index) => (
             apartment.location.address.coordinate && (
               <MarkerF
-                key={apartment.id}
+                key={index}
                 position={{
                   lat: apartment.location.address.coordinate.lat,
                   lng: apartment.location.address.coordinate.lon

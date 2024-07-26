@@ -1,18 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Context } from '../store/appContext';
 import { Modal, Button, Form, InputGroup, FormControl, Carousel } from 'react-bootstrap';
 
 export const PropertyListing = ({ property, categories, onSaveToCategory, onAddCategory }) => {
+  const {store, actions} = useContext(Context);
   const [showModal, setShowModal] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  const handleSave = () => {
+  const handleSaveListing = () => {
     if (selectedCategory) {
-
-
-
-      
+      const response =  fetch('/api/addListingToCategory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          listingName: {
+            propertyId: property.id,
+            categoryId: selectedCategory,
+            propertyDetails: {
+              address: `${property.location.address.line}, ${property.location.address.city}, ${property.location.address.state_code} ${property.location.address.postal_code}`,
+              price: `${property.list_price || property.list_price_max}`,
+              beds: `${getBedsDescription(property.description.beds, property.description.beds_max)}`,
+              baths: `${property.description.baths || property.description.baths_max}`,
+              photos: `${property.photos ? property.photos.map(photo => photo.href) : []}`,
+            }
+          }
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add listing to category');
+      }
+      const result =  response.json();
+      // If the API call was successful, then call onSaveToCategory
       onSaveToCategory(property, selectedCategory);
+      // Optionally, you can show a success message here
+      console.log('Listing added to category successfully:', result);
     }
     setShowModal(false);
   };
@@ -21,7 +45,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
     const bedCount = beds !== null ? beds : bedsMax;
     return bedCount === 0 ? 'Studio' : `${bedCount} beds`;
   };
-
+  
   const handleAddCategory = () => {
     // Get the token from sessionStorage
     const token = sessionStorage.getItem('token');
@@ -87,8 +111,8 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">Select a category</option>
-                {categories?.map((category, index) => (
-                  <option key={category.id || index} value={category.id}>
+                {store.categories?.map((category, index) => (
+                  <option key={index} value={category.id}>
                     {category.categoryName}
                   </option>
                 ))}
@@ -101,7 +125,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
-              <Button variant="outline-secondary" onClick={handleAddCategory}>
+              <Button variant="outline-secondary" onClick={() => actions.handleCreateCategory(newCategory)}>
                 Add
               </Button>
             </InputGroup>
@@ -109,7 +133,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-          <Button variant="primary" onClick={handleSave}>Save</Button>
+          <Button variant="primary" onClick={handleSaveListing}>Save</Button>
         </Modal.Footer>
       </Modal>
     </div >
