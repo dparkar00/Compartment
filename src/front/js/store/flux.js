@@ -11,6 +11,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 					]
 				},
 			],
+			userId:null,
 		},
 		actions: {
 			fetchApartments: async (location) => {

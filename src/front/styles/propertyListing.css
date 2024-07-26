@@ -14,4 +14,17 @@
     text-align: center;
     padding: 20px;
   }
+
+  .property-listing-photos{
+   
+  }
+
+  .add-to-category-btn {
+    margin-top: 15px;
+    
+    
+  }
   
+  .carousel-inner{
+    height:15vh;
+  }
