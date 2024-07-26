@@ -17,10 +17,10 @@ export const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <NavLink to="/homeSearchPage" className="nav-link" activeClassName="active">Buy</NavLink>
+                            <NavLink to="/homeSearchPage" className="nav-link" activeclassname="active">Buy</NavLink>
                         </li>
                         <li className="nav-item">
-                            <NavLink to="/searchPage" className="nav-link" activeClassName="active">Rent</NavLink>
+                            <NavLink to="/searchPage" className="nav-link" activeclassname="active">Rent</NavLink>
                         </li>
                     </ul>
                     <ul className="navbar-nav">

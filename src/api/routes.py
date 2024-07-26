@@ -409,9 +409,7 @@ def add_listing():
 
 @api.route("/get_listing_by_cat", methods=["GET"])
 def get_listings_by_cat():
-    data = request.json
     all_listings = list(map(lambda x: x.serialize(), Listings.query.all()))
-    cat_name = data['category']
 
     return jsonify(all_listings)
     # query category table by name to get the id to then get the correct listings

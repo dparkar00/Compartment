@@ -6,20 +6,16 @@ export const CategoryFavorites = () => {
   
   const [listings, setListings] = useState([]);
 
-  const { listing } = useParams();
-
   const fetchListings = async () => {
     const response = await fetch(process.env.BACKEND_URL + "api/get_listing_by_cat");
     if (response.ok) {
       const data = await response.json();
-      const thisListing = data.find((list) => list.id == listing);
-      if (thisListing) {
-        setListings([thisListing]);
-      }
-    } else {
+      console.log('Listings successfully gotten');
+      setListings(data);
+  } else {
       console.error('Failed to fetch listings:', response.status);
-    }
-  };
+  }
+};
 
   useEffect(() => {
     fetchListings();
@@ -30,6 +26,7 @@ export const CategoryFavorites = () => {
       <div className="App">
         <div className="container mt-5">
           <div className="card-deck">
+            yo
             {listings.map(listing => (
               <div className="card mb-3" key={listing.id}>
                 <div className="card-body">
@@ -40,9 +37,10 @@ export const CategoryFavorites = () => {
                 </div>
                 <div className="card-footer">
                   <ul className="list-unstyled">
-                    {listing.map((listingName, index) => (
+                    {/* {listing.map((listingName, index) => (
                       <li key={index}>{listingName}</li>
-                    ))}
+                    ))} */}
+                    {listing.listingName}
                   </ul>
                 </div>
               </div>
