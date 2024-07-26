@@ -1,7 +1,4 @@
-
-import React, { useState, useEffect, useContext, useLayoutEffect } from 'react';
-import { Context } from '../store/appContext';
-
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, InputGroup, FormControl, Carousel } from 'react-bootstrap';
 import '../../styles/propertyListing.css';
 
@@ -129,8 +126,8 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">Select a category</option>
-                {categories?.map((category, index) => (
-                  <option key={category.id || index} value={category.id}>
+                {localCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
                     {category.categoryName}
                   </option>
                 ))}
@@ -143,7 +140,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
               />
-              <Button variant="outline-secondary" onClick={() => handleAddCategory()}>
+              <Button variant="outline-secondary" onClick={handleAddCategory}>
                 Add
               </Button>
             </InputGroup>
@@ -151,7 +148,7 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-          <Button variant="primary" onClick={() => handleSaveListing()}>Save</Button>
+          <Button variant="primary" onClick={handleSaveListing}>Save</Button>
         </Modal.Footer>
       </Modal>
     </div>
