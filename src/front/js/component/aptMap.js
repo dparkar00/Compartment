@@ -7,8 +7,9 @@ import '../../styles/map.css';
 import MapSearchBar from './mapSearchbar';
 
 const containerStyle = {
-  width: '100%',
-  height: '100vh'
+  width: '120vh',
+  marginLeft: '130px',
+  height: '85vh'
 };
 
 const defaultCenter = {
@@ -28,7 +29,7 @@ export const AptMapComponent = () => {
 
 
   const fetchCategories = () => {
-    const token = sessionStorage.getItem('token'); // Retrieve the JWT token from sessionStorage
+    //const token = sessionStorage.getItem('token'); // Retrieve the JWT token from sessionStorage
 
     return fetch(process.env.BACKEND_URL + "api/categories", {
         method: 'GET',
@@ -126,9 +127,9 @@ export const AptMapComponent = () => {
     console.log(`Saving property to category: ${category}`);
   };
 
-  const handleAddCategory = (newCategory) => {
-    setPropertyCategories(prevCategories => [...prevCategories, newCategory]);
-  };
+  // const handleAddCategory = (newCategory) => {
+  //   setPropertyCategories(prevCategories => [...prevCategories, newCategory]);
+  // };
 
   const handleSearch = async (filters) => {
     await fetchApartments(filters);
@@ -179,6 +180,37 @@ export const AptMapComponent = () => {
       mapRef.current.fitBounds(bounds);
     }
   }, [apartments]);
+
+  const handleAddCategory = async (newCategory) => {
+    try {
+      // Add the new category to the backend
+      const response = await fetch(process.env.BACKEND_URL + "api/create_category", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newCategory }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to create category');
+      }
+  
+      const data = await response.json();
+      console.log('Category created successfully', data);
+      const newCategoryObject = {
+        id: Date.now().toString(),
+        categoryName: newCategory
+      };
+
+      setPropertyCategories(prevCategories => [...prevCategories, newCategoryObject]);
+  
+      // No need to fetch categories again, as we've already updated the state
+    } catch (error) {
+      console.error('Error adding category:', error);
+      setError(error.message);
+    }
+  };
 
   
   return (

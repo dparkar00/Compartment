@@ -8,9 +8,12 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
   const [selectedCategory, setSelectedCategory] = useState('');
   const [localCategories, setLocalCategories] = useState(categories);
 
+ 
   useEffect(() => {
-    setLocalCategories(categories);
-  }, [categories]);
+    if (showModal) {
+      setLocalCategories(categories);
+    }
+  }, [showModal, categories]);
 
   const handleSaveListing = () => {
     if (selectedCategory) {
@@ -56,31 +59,15 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
   };
   
   const handleAddCategory = () => {
-    fetch(process.env.BACKEND_URL + "api/create_category", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: newCategory }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to create category');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Category created successfully', data);
+    if (newCategory.trim()) {
         const newCategoryObject = { categoryName: newCategory };
         setLocalCategories([...localCategories, newCategoryObject]);
         onAddCategory(newCategory);
         setSelectedCategory(newCategory);
         setNewCategory('');
-      })
-      .catch(error => {
-        console.error('Error creating category:', error);
-      });
+    }
   };
+ 
 
   return (
     <div className="property-listing">
@@ -126,11 +113,11 @@ export const PropertyListing = ({ property, categories, onSaveToCategory, onAddC
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">Select a category</option>
-                {localCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.categoryName}
-                  </option>
-                ))}
+                {localCategories && localCategories.map((category) => (
+  <option key={category?.id} value={category?.id}>
+    {category?.categoryName}
+  </option>
+))}
               </Form.Control>
             </Form.Group>
             <hr />
