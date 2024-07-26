@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Context } from '../store/appContext';
 import { Link } from 'react-router-dom';
+import '../../styles/category.css'
 
 export const Category = () => {
     const {store, actions} = useContext(Context);
