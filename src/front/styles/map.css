@@ -31,7 +31,7 @@
   }
 
   .property-carousel {
-    height: 85vh;    /* Adjust this value as needed */
+    height: 80vh;    /* Adjust this value as needed */
     overflow-y: auto;
     padding-right:10px;
     scroll-snap-type: y mandatory;

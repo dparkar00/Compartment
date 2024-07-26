@@ -9,7 +9,7 @@ import MapSearchBar from './mapSearchbar';
 const containerStyle = {
   width: '120vh',
   marginLeft: '130px',
-  height: '85vh'
+  height: '80vh'
 };
 
 const defaultCenter = {
