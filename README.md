@@ -1,13 +1,16 @@
-# WebApp boilerplate with React JS and Flask API
+# Compartments.com
 
-Build web applications using React.js for the front end and python/flask for your backend API.
 
-- Documentation can be found here: https://start.4geeksacademy.com/starters/react-flask
-- Here is a video on [how to use this template](https://www.loom.com/share/f37c6838b3f1496c95111e515e83dd9b)
-- Integrated with Pipenv for package managing.
-- Fast deployment to heroku [in just a few steps here](https://start.4geeksacademy.com/backend/deploy-heroku-posgres).
-- Use of .env file.
-- SQLAlchemy integration for database abstraction.
+Google Maps Integration: Search for properties in any city using an interactive map.
+Features: Zoom in/out, set location preferences, view property markers with brief info.
+Filter Options: Filter properties by city, number of bedrooms/bathrooms
+Tabs for Property Options
+Buy: Explore properties available for purchase, powered by OpenAI to give more detailed results
+Rent: Discover rental properties.
+Saved Properties
+User Account Section: View saved properties in a personalized list.
+
+
 
 ### 1) Installation:
 
